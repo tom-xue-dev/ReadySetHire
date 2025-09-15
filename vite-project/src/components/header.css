@@ -1,0 +1,28 @@
+.header{
+    background-color: whitesmoke;
+    padding: 12px 20px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.logo{
+    position: relative;
+    font-size: 1.5rem;
+    color: black;
+}
+.nav a{
+    margin-right: 16px;
+    font-size: 1rem;
+    color: black;
+}
+
+.nav a:last-child{
+    margin-right: 0;
+}
+
+.nav a:hover{
+    text-decoration: underline;
+}

@@ -1,0 +1,23 @@
+.layout{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sticky{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.main{
+  flex: 1;
+  padding: 24px;
+}
+
+.footer{
+  background: #f2f2f2;
+  padding: 16px;
+  text-align: center;
+}
+
