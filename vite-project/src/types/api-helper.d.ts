@@ -10,4 +10,9 @@ declare module "../api/helper.js" {
   export function createQuestion(question: any): Promise<any>;
   export function updateQuestion(id: string | number, data: any): Promise<any>;
   export function deleteQuestion(id: string | number): Promise<any>;
+  // Applicants
+  export function getApplicantsByInterview(interviewId: string | number): Promise<any[]>;
+  export function createApplicant(applicant: any): Promise<any>;
+  export function updateApplicant(id: string | number, data: any): Promise<any>;
+  export function deleteApplicant(id: string | number): Promise<any>;
 }

@@ -106,6 +106,23 @@ export async function deleteQuestion(id) {
     return apiRequest(`/question?id=eq.${id}`, 'DELETE');
 }
 
+// Applicants APIs (by interview)
+export async function getApplicantsByInterview(interviewId) {
+    return apiRequest(`/applicant?interview_id=eq.${interviewId}`);
+}
+
+export async function createApplicant(applicant) {
+    return apiRequest(`/applicant`, 'POST', applicant);
+}
+
+export async function updateApplicant(id, data) {
+    return apiRequest(`/applicant?id=eq.${id}`, 'PATCH', data);
+}
+
+export async function deleteApplicant(id) {
+    return apiRequest(`/applicant?id=eq.${id}`, 'DELETE');
+}
+
 /**
  * Main function to demonstrate API usage.
  *

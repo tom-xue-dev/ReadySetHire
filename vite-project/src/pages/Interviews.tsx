@@ -10,9 +10,10 @@ import { useNavigate } from "react-router-dom";
 
 // Use helper.js API functions (JS module without types)
 // @ts-ignore
-import { getInterviews, createInterview, updateInterview, deleteInterview } from "../api/helper.js";
+import { getInterviews, createInterview, updateInterview, deleteInterview, getQuestions, getApplicantsByInterview } from "../api/helper.js";
 
 type Interview = Required<FormInterview> & { id: number };
+type Counts = Record<number, { questions: number; applicants: number; completed: number; notStarted: number }>;
 
 export default function Interviews() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Interviews() {
   const [items, setItems] = useState<Interview[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState<Interview | null>(null);
+  const [counts, setCounts] = useState<Counts>({});
 
   async function load() {
     setLoading(true);
@@ -28,6 +30,29 @@ export default function Interviews() {
     try {
       const data = await getInterviews();
       setItems(Array.isArray(data) ? (data as Interview[]) : []);
+      // fetch counts per interview
+      const list: Interview[] = Array.isArray(data) ? (data as Interview[]) : [];
+      const entries = await Promise.all(
+        list.map(async (iv) => {
+          try {
+            const [qs, apps] = await Promise.all([
+              getQuestions(iv.id),
+              getApplicantsByInterview(iv.id),
+            ]);
+            const qCount = Array.isArray(qs) ? qs.length : 0;
+            const aList = Array.isArray(apps) ? apps : [];
+            const total = aList.length;
+            const completed = aList.filter((a: any) => (a.status ?? a.interview_status ?? a.state) === 'Completed').length;
+            const notStarted = aList.filter((a: any) => (a.status ?? a.interview_status ?? a.state) === 'Not Started').length;
+            return [iv.id, { questions: qCount, applicants: total, completed, notStarted }] as const;
+          } catch {
+            return [iv.id, { questions: 0, applicants: 0, completed: 0, notStarted: 0 }] as const;
+          }
+        })
+      );
+      const map: Counts = {};
+      entries.forEach(([id, val]) => { map[id] = val; });
+      setCounts(map);
     } catch (e: any) {
       setError(e?.message ?? "Load failed");
     } finally {
@@ -46,10 +71,27 @@ export default function Interviews() {
     { header: "Status", accessor: "status", width: 120 },
     { header: "Owner", accessor: "username", width: 140 },
     {
+      header: "Questions", width: 140,
+      render: (row: Interview) => (
+        <button onClick={() => navigate(`/interviews/${row.id}/questions`)} style={linkBtn}>
+          {counts[row.id]?.questions ?? '...'} question(s)
+        </button>
+      ),
+    },
+    {
+      header: "Applicants", width: 220,
+      render: (row: Interview) => (
+        <button onClick={() => navigate(`/interviews/${row.id}/applicants`)} style={linkBtn}>
+          {counts[row.id]?.applicants ?? '...'} total ·
+          {' '}{counts[row.id]?.notStarted ?? 0} Not Started · {counts[row.id]?.completed ?? 0} Completed
+        </button>
+      ),
+    },
+    {
       header: "Actions",
       render: (row: Interview) => (
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => navigate(`/interviews/${row.id}/questions`)} aria-label="View Questions" style={iconBtn}>
+          <button onClick={() => navigate(`/interviews/${row.id}`)} aria-label="View" style={iconBtn}>
             <EyeIcon width={18} height={18} />
           </button>
           <button onClick={() => setEditOpen(row)} aria-label="Edit" style={iconBtn}>
@@ -62,7 +104,7 @@ export default function Interviews() {
       ),
       width: 140,
     },
-  ], [setEditOpen, handleDelete]);
+  ], [counts]);
 
   async function handleCreate(values: FormInterview) {
     try {
@@ -127,3 +169,4 @@ export default function Interviews() {
 
 const btnPrimary: React.CSSProperties = { padding: '8px 12px', borderRadius: 6, border: '1px solid #2563eb', background: '#2563eb', color: '#fff' };
 const iconBtn: React.CSSProperties = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 2 };
+const linkBtn: React.CSSProperties = { border: 'none', background: 'transparent', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' };
