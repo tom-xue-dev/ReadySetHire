@@ -8,6 +8,7 @@ import Applicants from "./pages/Applicants.tsx";
 import AudioRecorder from "./pages/AudioRecorder.tsx";
 import Questions from "./pages/Questions.tsx";
 import InterviewDetail from "./pages/InterviewDetail.tsx";
+import ResumeAssessment from "./pages/ResumeAssessment.tsx";
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
                 <Route path="/interviews" element={<Interviews />} />
                 <Route path="/applicants" element={<Applicants />} />
                 <Route path="/audio-recorder" element={<AudioRecorder />} />
+                <Route path="/resume-assessment" element={<ResumeAssessment />} />
                 <Route path="/interviews/:id" element={<InterviewDetail />}>
                     <Route index element={<Navigate to="questions" replace />} />
                     <Route path="questions" element={<Questions />} />
