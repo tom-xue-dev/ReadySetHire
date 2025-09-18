@@ -1,0 +1,12 @@
+name: Root CI
+
+on:
+  push:
+    branches: [ main, server ]
+  pull_request:
+    branches: [ main, server ]
+  workflow_dispatch:
+
+jobs:
+  server-ci:
+    uses: ./.github/workflows/server_ci.yml
