@@ -12,7 +12,7 @@ env:
 
 defaults:
   run:
-    working-directory: COMP2140A2/server
+    working-directory: ReadySetHire/server
 
 jobs:
   test:
@@ -43,7 +43,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
+        cache-dependency-path: 'ReadySetHire/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
@@ -80,7 +80,7 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: COMP2140A2/server/coverage/lcov.info
+        file: ReadySetHire/server/coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
@@ -99,7 +99,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
+        cache-dependency-path: 'ReadySetHire/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
@@ -114,7 +114,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: build-files
-        path: COMP2140A2/server/dist/
+        path: ReadySetHire/server/dist/
 
   docker:
     name: Build Docker Image (Local)
@@ -131,7 +131,7 @@ jobs:
     - name: Build Docker image (no push)
       uses: docker/build-push-action@v5
       with:
-        context: COMP2140A2/server
+        context: ReadySetHire/server
         push: false
         tags: readysethire-backend:latest
         cache-from: type=gha
@@ -156,7 +156,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
+        cache-dependency-path: 'ReadySetHire/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
@@ -185,7 +185,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
+        cache-dependency-path: 'ReadySetHire/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
