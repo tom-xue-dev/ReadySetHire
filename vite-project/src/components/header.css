@@ -1,14 +1,14 @@
 .header{
-    background-color: whitesmoke;
+    background-color: lightgray;
     padding: 12px 20px;
-    color: #fff;
+    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
 }
 
-.logo{
+.logo a{
     position: relative;
     font-size: 1.5rem;
     color: black;

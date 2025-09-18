@@ -123,6 +123,19 @@ export async function deleteApplicant(id) {
     return apiRequest(`/applicant?id=eq.${id}`, 'DELETE');
 }
 
+// Applicant Answer APIs
+export async function getAnswersByApplicant(applicantId) {
+    return apiRequest(`/applicant_answer?applicant_id=eq.${applicantId}`);
+}
+
+export async function createApplicantAnswer(answer) {
+    return apiRequest(`/applicant_answer`, 'POST', answer);
+}
+
+export async function updateApplicantAnswer(id, data) {
+    return apiRequest(`/applicant_answer?id=eq.${id}`, 'PATCH', data);
+}
+
 /**
  * Main function to demonstrate API usage.
  *

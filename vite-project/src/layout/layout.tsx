@@ -11,7 +11,7 @@ export default function Layout({children}: {children: ReactNode}) {
 
             <main className="main">{children}</main>
 
-            <footer className="footer">© 2025</footer>
+            <footer className="footer">© 2025 ReadySetHire - Streamlining the hiring process with AI</footer>
         </div>
     )
 }

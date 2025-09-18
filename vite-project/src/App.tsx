@@ -5,10 +5,14 @@ import Home from "./pages/Home.tsx";
 import Default from "./pages/Default.tsx";
 import Interviews from "./pages/Interviews.tsx";
 import Applicants from "./pages/Applicants.tsx";
+import ApplicantPage from "./pages/ApplicantPage.tsx";
 import AudioRecorder from "./pages/AudioRecorder.tsx";
 import Questions from "./pages/Questions.tsx";
 import InterviewDetail from "./pages/InterviewDetail.tsx";
 import ResumeAssessment from "./pages/ResumeAssessment.tsx";
+import InterviewWelcome from "./pages/InterviewWelcome.tsx";
+import InterviewRun from "./pages/InterviewRun.tsx";
+import InterviewThanks from "./pages/InterviewThanks.tsx";
 
 
 function App() {
@@ -19,6 +23,10 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/interviews" element={<Interviews />} />
+                <Route path="/interview-welcome/:interviewId/:applicantId" element={<InterviewWelcome />} />
+                <Route path="/interview-run/:interviewId/:applicantId" element={<InterviewRun />} />
+                <Route path="/interview-thanks/:interviewId/:applicantId" element={<InterviewThanks />} />
+                <Route path="/applicant" element={<ApplicantPage />} />
                 <Route path="/applicants" element={<Applicants />} />
                 <Route path="/audio-recorder" element={<AudioRecorder />} />
                 <Route path="/resume-assessment" element={<ResumeAssessment />} />

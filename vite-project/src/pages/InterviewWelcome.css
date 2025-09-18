@@ -1,0 +1,106 @@
+.iw-root{
+  min-height: 40vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.iw-card{
+  width: 100%;
+  max-width: 720px;
+  background: #ffffff;
+  border: 1px solid #bfdbfe; /* blue-200 */
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(30, 64, 175, 0.15); /* blue-800-ish shadow */
+  padding: 32px;
+}
+
+.iw-title{
+  margin: 0;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1d4ed8; /* blue-700 */
+}
+
+.iw-subtitle{
+  margin-top: 6px;
+  text-align: center;
+  color: rgba(30, 64, 175, 0.8); /* blue tone */
+}
+
+.iw-details{
+  margin-top: 20px;
+  display: grid;
+  grid-auto-rows: min-content;
+  justify-items: center;
+}
+
+.iw-label{
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #3b82f6; /* blue-500 */
+}
+
+.iw-value{
+  margin-top: 2px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a; /* slate-900 */
+}
+
+.iw-actions{
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.iw-button{
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #2563eb; /* blue-600 */
+  border: 1px solid #2563eb;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+.iw-button:hover{
+  background: #1d4ed8; /* blue-700 */
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(29, 78, 216, 0.35);
+}
+.iw-button:active{
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+}
+
+.iw-error{
+  margin-top: 12px;
+  padding: 8px 12px;
+  text-align: center;
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+}
+
+.iw-spinner{
+  width: 32px; height: 32px;
+  border-radius: 9999px;
+  border: 3px solid #93c5fd; /* blue-300 */
+  border-top-color: #2563eb; /* blue-600 */
+  animation: iw-spin .9s linear infinite;
+  margin: 24px auto 0;
+}
+
+@keyframes iw-spin { to { transform: rotate(360deg); } }
+
