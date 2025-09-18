@@ -5,6 +5,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '18'
@@ -111,7 +112,7 @@ jobs:
         path: dist/
 
   docker:
-    name: Build Docker Image
+    name: Build Docker Image (Local)
     runs-on: ubuntu-latest
     needs: [test, build]
 
@@ -122,32 +123,19 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ secrets.DOCKER_USERNAME }}/readysethire-backend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push Docker image
+    - name: Build Docker image (no push)
       uses: docker/build-push-action@v5
       with:
         context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        push: false
+        tags: readysethire-backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Test Docker image
+      run: |
+        echo "Docker image built successfully!"
+        docker images | grep readysethire-backend
 
   security:
     name: Security Scan
@@ -176,6 +164,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         args: --severity-threshold=high
+      if: ${{ secrets.SNYK_TOKEN != '' }}
 
   lint:
     name: Code Quality
@@ -203,33 +192,35 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [test, build, docker]
-    if: github.ref == 'refs/heads/develop'
+    needs: [test, build]
+    if: false
 
     steps:
     - name: Deploy to staging
       run: |
         echo "Deploying to staging environment..."
+        echo "Using build artifacts for deployment..."
         # Add your staging deployment commands here
-        # Example: kubectl apply -f k8s/staging/
+        # Example: rsync, scp, or other deployment methods
 
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [test, build, docker, security]
-    if: github.ref == 'refs/heads/main'
+    needs: [test, build, security]
+    if: false
 
     steps:
     - name: Deploy to production
       run: |
         echo "Deploying to production environment..."
+        echo "Using build artifacts for deployment..."
         # Add your production deployment commands here
-        # Example: kubectl apply -f k8s/production/
+        # Example: rsync, scp, or other deployment methods
 
   notify:
     name: Notify Team
     runs-on: ubuntu-latest
-    needs: [test, build, docker]
+    needs: [test, build]
     if: always()
 
     steps:
