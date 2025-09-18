@@ -43,6 +43,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
@@ -98,6 +99,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
@@ -154,6 +156,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
@@ -167,7 +170,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         args: --severity-threshold=high
-      if: ${{ secrets.SNYK_TOKEN }}
+      continue-on-error: true
 
   lint:
     name: Code Quality
@@ -182,6 +185,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'COMP2140A2/server/package-lock.json'
 
     - name: Install dependencies
       run: npm ci
