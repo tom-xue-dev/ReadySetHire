@@ -10,6 +10,11 @@ const database_1 = __importDefault(require("./services/database"));
 const routes_1 = require("./routes");
 // Load environment variables
 dotenv_1.default.config();
+// Set default DATABASE_URL if not provided
+if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = 'postgresql://readysethire_user:readysethire_password@localhost:5432/readysethire';
+    console.log('⚠️  Using default DATABASE_URL. Please set DATABASE_URL environment variable for production.');
+}
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Middleware

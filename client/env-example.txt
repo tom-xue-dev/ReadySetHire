@@ -1,0 +1,26 @@
+# Environment Configuration Examples
+# Create these files in the client directory:
+
+# ===== .env.development =====
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_JWT_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic3R1ZGVudCIsInVzZXJuYW1lIjoiczQ4MzEyMjcifQ.YEX2eDDydA3u65FSVQYmtDFR5GgsEDwksjgXFXsrLio
+VITE_USERNAME=s4831227
+VITE_DEBUG=true
+
+# ===== .env.staging =====
+VITE_API_BASE_URL=https://staging.comp2140a2.uqcloud.net/api
+VITE_JWT_TOKEN=your_staging_jwt_token_here
+VITE_USERNAME=your_username_here
+VITE_DEBUG=true
+
+# ===== .env.production =====
+VITE_API_BASE_URL=https://comp2140a2.uqcloud.net/api
+VITE_JWT_TOKEN=your_production_jwt_token_here
+VITE_USERNAME=your_username_here
+VITE_DEBUG=false
+
+# Instructions:
+# 1. Copy the appropriate section above
+# 2. Create the corresponding .env file (e.g., .env.development)
+# 3. Replace placeholder values with actual credentials
+# 4. Never commit .env files to version control
