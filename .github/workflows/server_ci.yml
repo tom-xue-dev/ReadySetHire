@@ -1,15 +1,18 @@
-name: CI/CD Pipeline
+name: Server CI/CD Pipeline
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+  workflow_call:
+    secrets:
+      SNYK_TOKEN:
+        required: false
 
 env:
   NODE_VERSION: '18'
   POSTGRES_VERSION: '15'
+
+defaults:
+  run:
+    working-directory: COMP2140A2/server
 
 jobs:
   test:
@@ -76,7 +79,7 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./coverage/lcov.info
+        file: COMP2140A2/server/coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
@@ -109,7 +112,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: build-files
-        path: dist/
+        path: COMP2140A2/server/dist/
 
   docker:
     name: Build Docker Image (Local)
@@ -126,7 +129,7 @@ jobs:
     - name: Build Docker image (no push)
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: COMP2140A2/server
         push: false
         tags: readysethire-backend:latest
         cache-from: type=gha
@@ -164,7 +167,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         args: --severity-threshold=high
-      if: ${{ secrets.SNYK_TOKEN != '' }}
+      if: ${{ secrets.SNYK_TOKEN }}
 
   lint:
     name: Code Quality

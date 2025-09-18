@@ -10,3 +10,4 @@ on:
 jobs:
   server-ci:
     uses: ./.github/workflows/server_ci.yml
+    secrets: inherit
