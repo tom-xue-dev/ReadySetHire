@@ -9,7 +9,7 @@ class JobController extends base_1.CRUDController {
         super(jobService);
         this.jobService = jobService;
     }
-    validateAndTransformData(data) {
+    validateAndTransformData(data, req) {
         base_1.ValidationUtils.validateRequired(data, ['title', 'description']);
         return {
             title: base_1.ValidationUtils.sanitizeString(data.title),
@@ -18,8 +18,19 @@ class JobController extends base_1.CRUDController {
             location: data.location ? base_1.ValidationUtils.sanitizeString(data.location) : null,
             salaryRange: data.salaryRange ? base_1.ValidationUtils.sanitizeString(data.salaryRange) : null,
             status: data.status || 'DRAFT',
-            userId: data.userId || data.user_id
+            userId: req?.user?.id || data.userId || data.user_id
         };
+    }
+    async create(req, res) {
+        try {
+            const data = this.validateAndTransformData(req.body, req);
+            const item = await this.service.create(data);
+            res.status(201).json(item);
+        }
+        catch (error) {
+            console.error(`Error creating ${this.modelName}:`, error);
+            res.status(500).json({ error: `Failed to create ${this.modelName}` });
+        }
     }
     async getByUserId(req, res) {
         try {
@@ -53,7 +64,7 @@ class JobController extends base_1.CRUDController {
                 res.status(400).json({ error: 'Invalid ID format' });
                 return;
             }
-            const job = await this.jobService.update({ id }, { status: 'PUBLISHED', publishedAt: new Date() });
+            const job = await this.jobService.update(id, { status: 'PUBLISHED', publishedAt: new Date() });
             res.json(job);
         }
         catch (error) {
@@ -70,16 +81,27 @@ class InterviewController extends base_1.CRUDController {
         super(interviewService);
         this.interviewService = interviewService;
     }
-    validateAndTransformData(data) {
+    validateAndTransformData(data, req) {
         base_1.ValidationUtils.validateRequired(data, ['title', 'jobRole']);
         return {
             title: base_1.ValidationUtils.sanitizeString(data.title),
             jobRole: base_1.ValidationUtils.sanitizeString(data.jobRole),
             description: data.description ? base_1.ValidationUtils.sanitizeString(data.description) : null,
             status: data.status || 'DRAFT',
-            userId: data.userId || data.user_id,
+            userId: req?.user?.id || data.userId || data.user_id,
             jobId: data.jobId || data.job_id
         };
+    }
+    async create(req, res) {
+        try {
+            const data = this.validateAndTransformData(req.body, req);
+            const item = await this.service.create(data);
+            res.status(201).json(item);
+        }
+        catch (error) {
+            console.error(`Error creating ${this.modelName}:`, error);
+            res.status(500).json({ error: `Failed to create ${this.modelName}` });
+        }
     }
     async getByUserId(req, res) {
         try {
@@ -137,7 +159,7 @@ class InterviewController extends base_1.CRUDController {
                 res.status(400).json({ error: 'Invalid ID format' });
                 return;
             }
-            const interview = await this.interviewService.update({ id }, { status: 'PUBLISHED' });
+            const interview = await this.interviewService.update(id, { status: 'PUBLISHED' });
             res.json(interview);
         }
         catch (error) {
@@ -282,7 +304,7 @@ class ApplicantController extends base_1.CRUDController {
                 res.status(400).json({ error: 'Invalid status' });
                 return;
             }
-            const applicant = await this.applicantService.update({ id }, { interviewStatus: status });
+            const applicant = await this.applicantService.update(id, { interviewStatus: status });
             res.json(applicant);
         }
         catch (error) {

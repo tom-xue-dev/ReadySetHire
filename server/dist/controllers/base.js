@@ -85,7 +85,7 @@ class CRUDController {
                 return;
             }
             const data = this.validateAndTransformData(req.body);
-            const item = await this.service.update({ id }, data);
+            const item = await this.service.update(id, data);
             res.json(item);
         }
         catch (error) {

@@ -4,7 +4,8 @@ import { JobService, InterviewService, QuestionService, ApplicantService, Applic
 export declare class JobController extends CRUDController<any> {
     private jobService;
     constructor(jobService: JobService);
-    protected validateAndTransformData(data: any): any;
+    protected validateAndTransformData(data: any, req?: any): any;
+    create(req: Request, res: Response): Promise<void>;
     getByUserId(req: Request, res: Response): Promise<void>;
     getPublished(req: Request, res: Response): Promise<void>;
     publish(req: Request, res: Response): Promise<void>;
@@ -12,7 +13,8 @@ export declare class JobController extends CRUDController<any> {
 export declare class InterviewController extends CRUDController<any> {
     private interviewService;
     constructor(interviewService: InterviewService);
-    protected validateAndTransformData(data: any): any;
+    protected validateAndTransformData(data: any, req?: any): any;
+    create(req: Request, res: Response): Promise<void>;
     getByUserId(req: Request, res: Response): Promise<void>;
     getByJobId(req: Request, res: Response): Promise<void>;
     getComplete(req: Request, res: Response): Promise<void>;

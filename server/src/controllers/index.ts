@@ -8,7 +8,7 @@ export class JobController extends CRUDController<any> {
     super(jobService);
   }
 
-  protected validateAndTransformData(data: any): any {
+  protected validateAndTransformData(data: any, req?: any): any {
     ValidationUtils.validateRequired(data, ['title', 'description']);
     
     return {
@@ -18,8 +18,19 @@ export class JobController extends CRUDController<any> {
       location: data.location ? ValidationUtils.sanitizeString(data.location) : null,
       salaryRange: data.salaryRange ? ValidationUtils.sanitizeString(data.salaryRange) : null,
       status: data.status || 'DRAFT',
-      userId: data.userId || data.user_id
+      userId: req?.user?.id || data.userId || data.user_id
     };
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const data = this.validateAndTransformData(req.body, req);
+      const item = await this.service.create(data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error(`Error creating ${this.modelName}:`, error);
+      res.status(500).json({ error: `Failed to create ${this.modelName}` });
+    }
   }
 
   async getByUserId(req: Request, res: Response): Promise<void> {
@@ -57,7 +68,7 @@ export class JobController extends CRUDController<any> {
       }
 
       const job = await this.jobService.update(
-        { id },
+        id,
         { status: 'PUBLISHED', publishedAt: new Date() }
       );
       res.json(job);
@@ -74,7 +85,7 @@ export class InterviewController extends CRUDController<any> {
     super(interviewService);
   }
 
-  protected validateAndTransformData(data: any): any {
+  protected validateAndTransformData(data: any, req?: any): any {
     ValidationUtils.validateRequired(data, ['title', 'jobRole']);
     
     return {
@@ -82,9 +93,20 @@ export class InterviewController extends CRUDController<any> {
       jobRole: ValidationUtils.sanitizeString(data.jobRole),
       description: data.description ? ValidationUtils.sanitizeString(data.description) : null,
       status: data.status || 'DRAFT',
-      userId: data.userId || data.user_id,
+      userId: req?.user?.id || data.userId || data.user_id,
       jobId: data.jobId || data.job_id
     };
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const data = this.validateAndTransformData(req.body, req);
+      const item = await this.service.create(data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error(`Error creating ${this.modelName}:`, error);
+      res.status(500).json({ error: `Failed to create ${this.modelName}` });
+    }
   }
 
   async getByUserId(req: Request, res: Response): Promise<void> {
@@ -149,7 +171,7 @@ export class InterviewController extends CRUDController<any> {
       }
 
       const interview = await this.interviewService.update(
-        { id },
+        id,
         { status: 'PUBLISHED' }
       );
       res.json(interview);
@@ -308,7 +330,7 @@ export class ApplicantController extends CRUDController<any> {
       }
 
       const applicant = await this.applicantService.update(
-        { id },
+        id,
         { interviewStatus: status }
       );
       res.json(applicant);

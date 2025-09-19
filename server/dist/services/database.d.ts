@@ -5,14 +5,17 @@ declare global {
 }
 export default prisma;
 export declare abstract class BaseService<T> {
-    protected prisma: PrismaClient;
-    protected model: string;
+    prisma: PrismaClient;
+    model: string;
     constructor(prisma: PrismaClient, model: string);
     create(data: any): Promise<T>;
     findMany(where?: any, include?: any): Promise<T[]>;
-    findUnique(where: any, include?: any): Promise<T | null>;
+    findUnique(where: any, options?: {
+        select?: any;
+        include?: any;
+    }): Promise<T | null>;
     findFirst(where: any, include?: any): Promise<T | null>;
-    update(where: any, data: any): Promise<T>;
+    update(id: number, data: any): Promise<T>;
     delete(where: any): Promise<T>;
     count(where?: any): Promise<number>;
 }
@@ -21,6 +24,17 @@ export declare class UserService extends BaseService<any> {
     findByUsername(username: string): Promise<any>;
     findByEmail(email: string): Promise<any>;
     findWithJobs(userId: number): Promise<any>;
+    createUser(userData: {
+        username: string;
+        email: string;
+        password: string;
+        firstName?: string;
+        lastName?: string;
+        role?: 'ADMIN' | 'RECRUITER' | 'INTERVIEWER';
+    }): Promise<any>;
+    validatePassword(user: any, password: string): Promise<boolean>;
+    authenticateUser(usernameOrEmail: string, password: string): Promise<any>;
+    updatePassword(userId: number, newPassword: string): Promise<any>;
 }
 export declare class JobService extends BaseService<any> {
     constructor(prisma: PrismaClient);

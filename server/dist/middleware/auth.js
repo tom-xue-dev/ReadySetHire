@@ -5,8 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateProfile = exports.getProfile = exports.register = exports.login = exports.optionalAuth = exports.requireRole = exports.authenticateToken = exports.JWTUtils = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const database_1 = require("../services/database");
 // JWT configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
@@ -37,10 +36,7 @@ const authenticateToken = async (req, res, next) => {
         }
         const decoded = JWTUtils.verifyToken(token);
         // Verify user still exists
-        const user = await prisma.user.findUnique({
-            where: { id: decoded.id },
-            select: { id: true, username: true, email: true, role: true }
-        });
+        const user = await database_1.userService.findUnique({ id: decoded.id }, { select: { id: true, username: true, email: true, role: true } });
         if (!user) {
             res.status(401).json({ error: 'Invalid token - user not found' });
             return;
@@ -84,10 +80,7 @@ const optionalAuth = async (req, res, next) => {
         const token = JWTUtils.extractTokenFromHeader(authHeader || '');
         if (token) {
             const decoded = JWTUtils.verifyToken(token);
-            const user = await prisma.user.findUnique({
-                where: { id: decoded.id },
-                select: { id: true, username: true, email: true, role: true }
-            });
+            const user = await database_1.userService.findUnique({ id: decoded.id }, { select: { id: true, username: true, email: true, role: true } });
             if (user) {
                 req.user = user;
             }
@@ -108,26 +101,9 @@ const login = async (req, res) => {
             res.status(400).json({ error: 'Username and password are required' });
             return;
         }
-        // Find user by username or email
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { username },
-                    { email: username }
-                ]
-            }
-        });
+        // Use UserService authentication method
+        const user = await database_1.userService.authenticateUser(username, password);
         if (!user) {
-            res.status(401).json({ error: 'Invalid credentials' });
-            return;
-        }
-        // In a real application, you would hash the password and compare
-        // For now, we'll assume password validation is handled elsewhere
-        // const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-        // For demo purposes, we'll use a simple check
-        // In production, implement proper password hashing
-        const isValidPassword = password === 'password'; // Replace with proper validation
-        if (!isValidPassword) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
         }
@@ -162,39 +138,20 @@ const register = async (req, res) => {
             return;
         }
         // Check if user already exists
-        const existingUser = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { username },
-                    { email }
-                ]
-            }
-        });
+        const existingUser = await database_1.userService.findByUsername(username) ||
+            await database_1.userService.findByEmail(email);
         if (existingUser) {
             res.status(409).json({ error: 'User already exists' });
             return;
         }
-        // In production, hash the password
-        // const passwordHash = await bcrypt.hash(password, 10);
-        const passwordHash = password; // Replace with proper hashing
-        const user = await prisma.user.create({
-            data: {
-                username,
-                email,
-                passwordHash,
-                firstName,
-                lastName,
-                role: role || 'RECRUITER'
-            },
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                role: true,
-                createdAt: true
-            }
+        // Use UserService to create user with hashed password
+        const user = await database_1.userService.createUser({
+            username,
+            email,
+            password,
+            firstName,
+            lastName,
+            role: role || 'RECRUITER'
         });
         const token = JWTUtils.generateToken({
             id: user.id,
@@ -204,7 +161,15 @@ const register = async (req, res) => {
         });
         res.status(201).json({
             token,
-            user
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                createdAt: user.createdAt
+            }
         });
     }
     catch (error) {
@@ -220,9 +185,7 @@ const getProfile = async (req, res) => {
             res.status(401).json({ error: 'Authentication required' });
             return;
         }
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.id },
-            select: {
+        const user = await database_1.userService.findUnique({ id: req.user.id }, { select: {
                 id: true,
                 username: true,
                 email: true,
@@ -231,8 +194,7 @@ const getProfile = async (req, res) => {
                 role: true,
                 createdAt: true,
                 updatedAt: true
-            }
-        });
+            } });
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;
@@ -260,19 +222,7 @@ const updateProfile = async (req, res) => {
             updateData.lastName = lastName;
         if (email !== undefined)
             updateData.email = email;
-        const user = await prisma.user.update({
-            where: { id: req.user.id },
-            data: updateData,
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                role: true,
-                updatedAt: true
-            }
-        });
+        const user = await database_1.userService.update(req.user.id, updateData);
         res.json(user);
     }
     catch (error) {

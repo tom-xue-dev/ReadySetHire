@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { BaseService } from '../services/database';
 export declare class CRUDController<T> {
-    private service;
+    service: BaseService<T>;
     constructor(service: BaseService<T>);
-    private get modelName();
+    get modelName(): string;
     getAll(req: Request, res: Response): Promise<void>;
     getById(req: Request, res: Response): Promise<void>;
     create(req: Request, res: Response): Promise<void>;

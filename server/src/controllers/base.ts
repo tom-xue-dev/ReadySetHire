@@ -3,10 +3,10 @@ import { BaseService } from '../services/database';
 
 // Generic CRUD controller
 export class CRUDController<T> {
-  constructor(private service: BaseService<T>) {}
+  constructor(public service: BaseService<T>) {}
 
   // Get the model name from the service
-  private get modelName(): string {
+  public get modelName(): string {
     return (this.service as any).model;
   }
 
@@ -91,7 +91,7 @@ export class CRUDController<T> {
       }
 
       const data = this.validateAndTransformData(req.body);
-      const item = await this.service.update({ id }, data);
+      const item = await this.service.update(id, data);
       res.json(item);
     } catch (error) {
       console.error(`Error updating ${this.modelName}:`, error);

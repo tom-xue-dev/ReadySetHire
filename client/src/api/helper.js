@@ -1,5 +1,12 @@
 // Import configuration from centralized config file
-import { API_BASE_URL, JWT_TOKEN, USERNAME, API_TIMEOUT } from '../config/api.ts';
+import { API_BASE_URL, API_TIMEOUT } from '../config/api.ts';
+
+/**
+ * Get the current JWT token from localStorage
+ */
+function getAuthToken() {
+  return localStorage.getItem('token') || '';
+}
 
 /**
  * Helper function to handle API requests with timeout and error handling.
@@ -21,7 +28,7 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
         method, // Set the HTTP method (GET, POST, PATCH)
         headers: {
             'Content-Type': 'application/json', // Indicate that we are sending JSON data
-            'Authorization': `Bearer ${JWT_TOKEN}` // Include the JWT token for authentication
+            'Authorization': `Bearer ${getAuthToken()}` // Include the JWT token for authentication
         },
         signal: controller.signal, // Add signal for timeout control
     };
@@ -31,9 +38,9 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
         options.headers['Prefer'] = 'return=representation';
     }
 
-    // If a body is provided, add it to the request and include the username
+    // If a body is provided, add it to the request
     if (body) {
-        options.body = JSON.stringify({ ...body, username: USERNAME });
+        options.body = JSON.stringify(body);
     }
 
     try {
@@ -69,6 +76,57 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
  */
 export async function createInterview(interview) {
     return apiRequest('/interview', 'POST', interview);
+}
+
+/**
+ * Function to list all jobs.
+ *
+ * @returns {Promise<Array>} - An array of job objects.
+ */
+export async function getJobs() {
+    const response = await apiRequest('/jobs');
+    return response.data || [];
+}
+
+/**
+ * Function to get a single job by its ID.
+ *
+ * @param {string} id - The ID of the job to retrieve.
+ * @returns {Promise<object>} - The job object matching the ID.
+ */
+export async function getJob(id) {
+    return await apiRequest(`/jobs/${id}`);
+}
+
+/**
+ * Function to create a new job.
+ *
+ * @param {object} jobData - The job data to create.
+ * @returns {Promise<object>} - The created job object.
+ */
+export async function createJob(jobData) {
+    return await apiRequest('/jobs', 'POST', jobData);
+}
+
+/**
+ * Function to update a job.
+ *
+ * @param {string} id - The ID of the job to update.
+ * @param {object} jobData - The job data to update.
+ * @returns {Promise<object>} - The updated job object.
+ */
+export async function updateJob(id, jobData) {
+    return await apiRequest(`/jobs/${id}`, 'PATCH', jobData);
+}
+
+/**
+ * Function to delete a job.
+ *
+ * @param {string} id - The ID of the job to delete.
+ * @returns {Promise<void>} - No return value.
+ */
+export async function deleteJob(id) {
+    return await apiRequest(`/jobs/${id}`, 'DELETE');
 }
 
 /**
@@ -168,7 +226,7 @@ export async function healthCheck() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${JWT_TOKEN}`
+                'Authorization': `Bearer ${getAuthToken()}`
             },
             signal: controller.signal
         });

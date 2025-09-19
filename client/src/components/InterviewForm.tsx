@@ -1,13 +1,8 @@
 import type { CSSProperties } from "react";
-
-export type Interview = {
-  id?: number;
-  title: string;
-  job_role: string;
-  description?: string;
-  status: "Published" | "Draft" | "Archived" | string;
-  username: string;
-};
+import { useEffect, useState } from "react";
+// @ts-ignore JS helper
+import { getJobs } from "../api/helper.js";
+import type { Job, Interview } from "../types";
 
 export default function InterviewForm({
   initial,
@@ -18,10 +13,27 @@ export default function InterviewForm({
   onSubmit: (values: Interview) => void;
   onCancel: () => void;
 }) {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
   const valuesRef = { ...defaultInterview(), ...initial } as Interview;
 
   function defaultInterview(): Interview {
-    return { title: "", job_role: "", description: "", status: "Draft", username: "s10000" };
+    return { title: "", jobRole: "", description: "", status: "Draft", username: "s10000", jobId: undefined };
+  }
+
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  async function loadJobs() {
+    try {
+      const data = await getJobs();
+      setJobs(data);
+    } catch (err) {
+      console.error('Failed to load jobs:', err);
+    } finally {
+      setLoadingJobs(false);
+    }
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -31,10 +43,11 @@ export default function InterviewForm({
     const payload: Interview = {
       id: valuesRef.id,
       title: String(formData.get('title') || ''),
-      job_role: String(formData.get('job_role') || ''),
+      jobRole: String(formData.get('jobRole') || ''),
       description: String(formData.get('description') || ''),
       status: String(formData.get('status') || 'Draft'),
       username: String(formData.get('username') || 's10000'),
+      jobId: formData.get('jobId') ? parseInt(String(formData.get('jobId'))) : undefined,
     };
     onSubmit(payload);
   }
@@ -50,8 +63,34 @@ export default function InterviewForm({
         <input id="title" name="title" defaultValue={valuesRef.title} style={inputStyle} maxLength={255} required />
       </div>
       <div style={fieldStyle}>
-        <label style={labelStyle} htmlFor="job_role">Job Role *</label>
-        <input id="job_role" name="job_role" defaultValue={valuesRef.job_role} style={inputStyle} maxLength={255} required />
+        <label style={labelStyle} htmlFor="jobId">Select Job *</label>
+        <select 
+          id="jobId" 
+          name="jobId" 
+          defaultValue={valuesRef.jobId || ''} 
+          style={inputStyle} 
+          required
+        >
+          <option value="">Choose a job...</option>
+          {loadingJobs ? (
+            <option disabled>Loading jobs...</option>
+          ) : (
+            jobs.map((job) => (
+              <option key={job.id} value={job.id}>
+                {job.title} {job.company ? `(${job.company})` : ''}
+              </option>
+            ))
+          )}
+        </select>
+        {jobs.length === 0 && !loadingJobs && (
+          <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+            No jobs available. Please create a job first.
+          </div>
+        )}
+      </div>
+      <div style={fieldStyle}>
+        <label style={labelStyle} htmlFor="jobRole">Job Role *</label>
+        <input id="jobRole" name="jobRole" defaultValue={valuesRef.jobRole} style={inputStyle} maxLength={255} required />
       </div>
       <div style={fieldStyle}>
         <label style={labelStyle} htmlFor="description">Description</label>

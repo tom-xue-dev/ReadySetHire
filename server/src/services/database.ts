@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 // Singleton Prisma client instance
 let prisma: PrismaClient;
@@ -29,8 +30,8 @@ export default prisma;
 
 // Base service class with common CRUD operations
 export abstract class BaseService<T> {
-  protected prisma: PrismaClient;
-  protected model: string;
+  public prisma: PrismaClient;
+  public model: string;
 
   constructor(prisma: PrismaClient, model: string) {
     this.prisma = prisma;
@@ -45,16 +46,16 @@ export abstract class BaseService<T> {
     return (this.prisma as any)[this.model].findMany({ where, include });
   }
 
-  async findUnique(where: any, include?: any): Promise<T | null> {
-    return (this.prisma as any)[this.model].findUnique({ where, include });
+  async findUnique(where: any, options?: { select?: any; include?: any }): Promise<T | null> {
+    return (this.prisma as any)[this.model].findUnique({ where, ...options });
   }
 
   async findFirst(where: any, include?: any): Promise<T | null> {
     return (this.prisma as any)[this.model].findFirst({ where, include });
   }
 
-  async update(where: any, data: any): Promise<T> {
-    return (this.prisma as any)[this.model].update({ where, data });
+  async update(id: number, data: any): Promise<T> {
+    return (this.prisma as any)[this.model].update({ where: { id }, data });
   }
 
   async delete(where: any): Promise<T> {
@@ -66,7 +67,7 @@ export abstract class BaseService<T> {
   }
 }
 
-// User service with additional methods
+// User service with authentication methods
 export class UserService extends BaseService<any> {
   constructor(prisma: PrismaClient) {
     super(prisma, 'user');
@@ -82,6 +83,52 @@ export class UserService extends BaseService<any> {
 
   async findWithJobs(userId: number) {
     return this.findUnique({ id: userId }, { include: { jobs: true } });
+  }
+
+  // Authentication methods
+  async createUser(userData: {
+    username: string;
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    role?: 'ADMIN' | 'RECRUITER' | 'INTERVIEWER';
+  }) {
+    const { password, ...data } = userData;
+    const passwordHash = await bcrypt.hash(password, 12);
+    
+    return this.create({
+      ...data,
+      passwordHash,
+    });
+  }
+
+  async validatePassword(user: any, password: string): Promise<boolean> {
+    return bcrypt.compare(password, user.passwordHash);
+  }
+
+  async authenticateUser(usernameOrEmail: string, password: string) {
+    // Try to find user by username or email
+    const user = await this.findByUsername(usernameOrEmail) || 
+                 await this.findByEmail(usernameOrEmail);
+    
+    if (!user) {
+      return null;
+    }
+
+    const isValidPassword = await this.validatePassword(user, password);
+    if (!isValidPassword) {
+      return null;
+    }
+
+    // Return user without password hash
+    const { passwordHash, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  async updatePassword(userId: number, newPassword: string) {
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    return this.update(userId, { passwordHash });
   }
 }
 
@@ -119,23 +166,25 @@ export class InterviewService extends BaseService<any> {
   }
 
   async findWithQuestions(interviewId: number) {
-    return this.findUnique({ id: interviewId }, { questions: true });
+    return this.findUnique({ id: interviewId }, { include: { questions: true } });
   }
 
   async findWithApplicants(interviewId: number) {
-    return this.findUnique({ id: interviewId }, { applicants: true });
+    return this.findUnique({ id: interviewId }, { include: { applicants: true } });
   }
 
   async findComplete(interviewId: number) {
     return this.findUnique(
       { id: interviewId },
       {
-        questions: true,
-        applicants: {
-          include: {
-            applicantAnswers: {
-              include: {
-                question: true,
+        include: {
+          questions: true,
+          applicants: {
+            include: {
+              applicantAnswers: {
+                include: {
+                  question: true,
+                },
               },
             },
           },
