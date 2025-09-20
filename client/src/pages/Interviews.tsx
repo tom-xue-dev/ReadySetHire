@@ -144,9 +144,9 @@ function Interviews() {
   return (
     <SimpleConnectionGuard>
       <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div className="flex justify-between items-center p-[20px]">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <h2 style={{ margin: 0 }}>Interviews</h2>
+            <h1 style={{ margin: 0 }}>Interviews</h1>
             <SimpleConnectionIndicator />
           </div>
           <button onClick={() => setCreateOpen(true)} style={btnPrimary}>New Interview</button>

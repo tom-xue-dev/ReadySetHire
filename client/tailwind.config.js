@@ -5,8 +5,10 @@ export default {
     './src/**/*.{ts,tsx,js,jsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      
+    },
   },
-  plugins: [require('daisyui')],
+  plugins: [],
 };
 

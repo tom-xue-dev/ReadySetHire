@@ -44,7 +44,7 @@ export function createRoutes() {
   router.post('/interviews', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), interviewController.create.bind(interviewController));
   router.patch('/interviews/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), interviewController.update.bind(interviewController));
   router.patch('/interviews/:id/publish', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), interviewController.publish.bind(interviewController));
-  router.delete('/interviews/:id', authenticateToken, requireRole(['ADMIN']), interviewController.delete.bind(interviewController));
+  router.delete('/interviews/:id', authenticateToken, requireRole(['ADMIN','RECRUITER']), interviewController.delete.bind(interviewController));
 
   // Question routes
   router.get('/questions', optionalAuth, questionController.getAll.bind(questionController));

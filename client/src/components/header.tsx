@@ -1,13 +1,16 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../contexts/I18nContext';
-import { UserCircleIcon, ChevronDownIcon, Cog6ToothIcon } from '@heroicons/react/24/solid';
+import { UserCircleIcon, Cog6ToothIcon, Bars3Icon } from '@heroicons/react/24/solid';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_transparent.png';
 
-interface HeaderProps {}
+interface HeaderProps {
+  sidebarOpen?: boolean;
+  onToggle: () => void;
+}
 
-export default function Header({}: HeaderProps) {
+export default function Header({ sidebarOpen = false, onToggle }: HeaderProps) {
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -40,9 +43,18 @@ export default function Header({}: HeaderProps) {
   }, []);
   
   return (
-    <header style={headerStyle}>
-      <div style={containerStyle}>
-        <div style={brandStyle}>
+    <header className = "p-[16px] top-0 sticky relative " style = {{backgroundColor: 'gray'}}>
+      {/* Static toggle button, above sidebar */}
+      <button
+        onClick={onToggle}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-[100] p-2 bg-transparent border-0 text-white cursor-pointer rounded-lg hover:bg-gray-700 focus:outline-none"
+        aria-label="Toggle sidebar"
+        title={sidebarOpen ? 'Close Menu' : 'Open Menu'}
+      >
+        <Bars3Icon width={24} height={24} />
+      </button>
+      <div className="max-w-full mx-auto px-5 flex justify-between items-center">
+        <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarOpen ? 'ml-[280px]' : 'ml-[45px]'}`}>
           <button onClick={() => navigate('/')} style={brandTitleStyle}>
             <img src={logo} style={{ height: 40, width: 'auto' }} className="block object-contain" />
           </button>
@@ -52,25 +64,13 @@ export default function Header({}: HeaderProps) {
         </span>
         <div style={navItemsStyle}>
           {/* dropdown menu */}
-          <div style={dropdownContainerStyle} ref={dropdownRef}>
+          <div ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              style={userButtonStyle}
+              className = "flex items-center gap-2 p-2 bg-transparent border-0 text-white cursor-pointer text-left"
               title={t('common.welcome')}
             >
-              <UserCircleIcon width={24} height={24} style={{ color: 'white' }} />
-              <span style={userNameStyle}>
-                {user?.firstName || user?.username}
-              </span>
-              <ChevronDownIcon 
-                width={16} 
-                height={16} 
-                style={{ 
-                  color: 'white',
-                  transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease'
-                }} 
-              />
+            <UserCircleIcon width={24} height={24} style={{ color: 'white' }} />
             </button>
             
             {isDropdownOpen && (
@@ -117,31 +117,9 @@ export default function Header({}: HeaderProps) {
   );
 }
 
-// Styles
-const headerStyle: React.CSSProperties = {
-  backgroundColor: '#1f2937',
-  color: 'white',
-  padding: '16px 0',
-  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  position: 'sticky',
-  top: 0,
-  zIndex: 10,
-};
 
-const containerStyle: React.CSSProperties = {
-  maxWidth: '1200px',
-  margin: '0 auto',
-  padding: '0 20px',
-  display: 'flex',
-  justifyContent: 'space-between', 
-  alignItems: 'center',
-};
 
-const brandStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-};
+
 
 const brandTitleStyle: React.CSSProperties = {
   fontSize: '24px',
@@ -167,10 +145,6 @@ const userInfoStyle: React.CSSProperties = {
   gap: '2px',
 };
 
-const userNameStyle: React.CSSProperties = {
-  fontSize: '16px',
-  fontWeight: '500',
-};
 
 const userRoleStyle: React.CSSProperties = {
   fontSize: '12px',
@@ -179,27 +153,10 @@ const userRoleStyle: React.CSSProperties = {
 };
 
 
-const dropdownContainerStyle: React.CSSProperties = {
-  position: 'relative',
-  display: 'inline-block',
-  color: 'black',
-};
 
 
-const userButtonStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 12px',
-  backgroundColor: 'transparent',
-  color: 'white',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  borderRadius: '8px',
-  fontSize: '14px',
-  fontWeight: '500',
-  cursor: 'pointer',
-  transition: 'all 0.2s ease',
-};
+
+
 
 
 const dropdownMenuStyle: React.CSSProperties = {
