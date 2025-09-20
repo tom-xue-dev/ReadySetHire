@@ -1,5 +1,51 @@
-import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useI18n } from '../contexts/I18nContext';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
+
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export function SidebarToggle({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        position: 'fixed',
+        top: '16px',
+        left: '16px',
+        zIndex: 60,
+        background: '#1f2937',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '8px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '40px',
+        height: '40px',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        transition: 'all 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = '#374151';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = '#1f2937';
+      }}
+      title={isOpen ? 'Close Menu' : 'Open Menu'}
+    >
+      {isOpen ? (
+        <XMarkIcon width={20} height={20} />
+      ) : (
+        <Bars3Icon width={20} height={20} />
+      )}
+    </button>
+  );
+}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -7,16 +53,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useI18n();
 
   const menuItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/interviews', label: 'Interviews', icon: '🎯' },
-    { path: '/jobs', label: 'Job Postings', icon: '💼' },
-    { path: '/applicants', label: 'Applicants', icon: '👥' },
-    { path: '/questions', label: 'Questions', icon: '❓' },
+    { path: '/dashboard', label: t('navigation.dashboard'), icon: '📊' },
+    { path: '/interviews', label: t('navigation.interviews'), icon: '🎯' },
+    { path: '/jobs', label: t('navigation.jobs'), icon: '💼' },
+    { path: '/applicants', label: t('navigation.applicants'), icon: '👥' },
+    { path: '/questions', label: t('navigation.questions'), icon: '❓' },
   ];
 
   const isActive = (path: string) => {
@@ -28,24 +74,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 40,
-            display: 'block'
-          }}
-          onClick={onToggle}
-        />
-      )}
 
-      {/* Sidebar */}
+      <SidebarToggle isOpen={isOpen} onToggle={onToggle} />
       <div
         style={{
           position: 'fixed',
@@ -62,37 +92,42 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           flexDirection: 'column'
         }}
       >
-        {/* Header */}
-        <div style={{ padding: '20px', borderBottom: '1px solid #374151' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
-              ReadySetHire
-            </h2>
+
+        {isOpen && (
+          <div style={{
+            padding: '20px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
             <button
               onClick={onToggle}
               style={{
-                background: 'none',
+                background: 'transparent',
                 border: 'none',
                 color: 'white',
-                fontSize: '20px',
                 cursor: 'pointer',
-                padding: '4px'
+                padding: '10px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title={t('common.closeMenu')}
             >
-              ✕
             </button>
           </div>
-          <div style={{ marginTop: '8px', fontSize: '14px', color: '#9ca3af' }}>
-            Welcome, {user?.firstName || user?.username}
-          </div>
-          <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase' }}>
-            {user?.role}
-          </div>
-        </div>
+        )}
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '20px 0' }}>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        <nav style={{ flex: 1, padding: '20px' }}>
+          <ul style={{ listStyle: 'none', margin: "5px", padding: 0 }}>
             {menuItems.map((item) => (
               <li key={item.path} style={{ marginBottom: '4px' }}>
                 <button
@@ -134,13 +169,6 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
             ))}
           </ul>
         </nav>
-
-        {/* Footer */}
-        <div style={{ padding: '20px', borderTop: '1px solid #374151' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
-            ReadySetHire v1.0
-          </div>
-        </div>
       </div>
     </>
   );

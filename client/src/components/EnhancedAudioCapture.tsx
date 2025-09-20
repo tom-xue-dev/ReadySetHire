@@ -8,7 +8,7 @@ export interface AudioCaptureProps {
 }
 
 // Enhanced recorder: supports multiple recordings and text concatenation
-export default function AudioCapture({ onStop, disabled, allowMultiple = true, onAppend }: AudioCaptureProps) {
+export default function AudioCapture({ onStop, disabled, allowMultiple = true }: AudioCaptureProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const [isRecording, setIsRecording] = useState(false);

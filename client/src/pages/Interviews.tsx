@@ -3,7 +3,7 @@ import DataTable from "../components/DataTable";
 import type { Column } from "../components/DataTable";
 import Modal from "../components/Modal";
 import InterviewForm from "../components/InterviewForm";
-import type { Interview as FormInterview } from "../components/InterviewForm";
+import type { Interview as FormInterview } from "../types";
 import { TrashIcon, PencilIcon, EyeIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
@@ -68,7 +68,7 @@ function Interviews() {
   const columns: Column<Interview>[] = useMemo(() => [
     { header: "ID", accessor: "id", width: 70 },
     { header: "Title", accessor: "title" },
-    { header: "Job Role", accessor: "job_role" },
+    { header: "Job Role", accessor: "jobRole" },
     { header: "Status", accessor: "status", width: 120 },
     { header: "Owner", accessor: "username", width: 140 },
     {

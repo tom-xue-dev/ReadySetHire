@@ -4,15 +4,24 @@
   flex-direction: column;
 }
 
-.sticky{
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.dashboard-container {
+  display: flex;
+  flex: 1;
+}
+
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-open {
+  margin-left: 280px;
 }
 
 .main{
   flex: 1;
   padding: 24px;
+  margin-top: 20px;
 }
 
 .footer{

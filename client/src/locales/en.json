@@ -1,0 +1,88 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "logout": "Logout",
+    "login": "Login",
+    "dashboard": "Dashboard",
+    "toggleMenu": "Toggle Menu",
+    "confirmLogout": "Are you sure you want to logout?",
+    "copyright": "© 2025 ReadySetHire - Streamlining the hiring process with AI",
+    "settings": "Settings",
+    "closeMenu": "Close Menu"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "interviews": "Interviews",
+    "jobs": "Job Postings",
+    "applicants": "Applicants",
+    "questions": "Questions",
+  },
+  "home": {
+    "title": "ReadySetHire",
+    "loginLink": "Login",
+    "dashboardLink": "Dashboard"
+  },
+  "interview": {
+    "placeholder": "Type your answer here or use voice recording...",
+    "transcribing": "Transcribing...",
+    "speechError": "Speech Recognition Error",
+    "retrySpeech": "🔄 Retry Speech Recognition",
+    "recordMore": "Record More",
+    "reset": "Reset",
+    "startRecording": "Start Recording",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stopTranscribe": "Stop & Transcribe"
+  },
+  "resume": {
+    "title": "Resume Assessment",
+    "fileLabel": "Resume file (.pdf or .txt) *",
+    "jdLabel": "Job Description (JD) *",
+    "jdPlaceholder": "Paste the JD here...",
+    "selectedFile": "Selected: {fileName} ({fileSize} KB)",
+    "extractedText": "Extracted text preview (TXT):",
+    "prepare": "Prepare Assessment",
+    "reset": "Reset",
+    "uploadFirst": "Please upload a PDF or TXT resume file first.",
+    "pasteJD": "Please paste the Job Description (JD).",
+    "loadedTxt": "Loaded TXT with {charCount} characters.",
+    "pdfSelected": "PDF selected. Parsing will be handled by backend.",
+    "unsupportedFile": "Unsupported file type. Please upload .pdf or .txt"
+  },
+  "forms": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "table": {
+    "noData": "No data",
+    "actions": "Actions",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your application preferences",
+    "language": {
+      "title": "Language Settings",
+      "description": "Choose your preferred language for the application interface",
+      "current": "Current Language"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the look and feel of the application"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure notification preferences"
+    },
+    "comingSoon": "Coming Soon"
+  }
+}
