@@ -146,8 +146,6 @@ enum InterviewStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
-  NOT_STARTED
-  COMPLETED
 }
 
 enum Difficulty {

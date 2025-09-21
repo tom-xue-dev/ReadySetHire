@@ -15,7 +15,7 @@ export type Interview = {
   title: string;
   jobRole: string;
   description?: string;
-  status: "Published" | "Draft" | "Archived" | string;
+  status: "published" | "draft" | "archived" | string;
   username: string;
   jobId?: number;
 };

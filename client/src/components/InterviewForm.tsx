@@ -18,7 +18,7 @@ export default function InterviewForm({
   const valuesRef = { ...defaultInterview(), ...initial } as Interview;
 
   function defaultInterview(): Interview {
-    return { title: "", jobRole: "", description: "", status: "Draft", username: "s10000", jobId: undefined };
+    return { title: "", jobRole: "", description: "", status: "draft", username: "", jobId: undefined };
   }
 
   useEffect(() => {
@@ -45,8 +45,8 @@ export default function InterviewForm({
       title: String(formData.get('title') || ''),
       jobRole: String(formData.get('jobRole') || ''),
       description: String(formData.get('description') || ''),
-      status: String(formData.get('status') || 'Draft'),
-      username: String(formData.get('username') || 's10000'),
+      status: String(formData.get('status') || 'draft'),
+      username: String(formData.get('username') || ''),
       jobId: formData.get('jobId') ? parseInt(String(formData.get('jobId'))) : undefined,
     };
     onSubmit(payload);
@@ -100,9 +100,9 @@ export default function InterviewForm({
         <div style={fieldStyle}>
           <label style={labelStyle} htmlFor="status">Status *</label>
           <select id="status" name="status" defaultValue={valuesRef.status} style={inputStyle} required>
-            <option value="Draft">Draft</option>
-            <option value="Published">Published</option>
-            <option value="Archived">Archived</option>
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
           </select>
         </div>
         <div style={fieldStyle}>

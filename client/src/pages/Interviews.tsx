@@ -70,7 +70,6 @@ function Interviews() {
     { header: "Title", accessor: "title" },
     { header: "Job Role", accessor: "jobRole" },
     { header: "Status", accessor: "status", width: 120 },
-    { header: "Owner", accessor: "username", width: 140 },
     {
       header: "Questions", width: 140,
       render: (row: Interview) => (
@@ -152,7 +151,7 @@ function Interviews() {
           <button onClick={() => setCreateOpen(true)} style={btnPrimary}>New Interview</button>
         </div>
 
-        {error && <div style={{ color: '#b91c1c', marginBottom: 8 }}>Error: {error}</div>}
+        {error && <div style={{ color: '#b91c1c', marginBottom: 8}}>Error: {error}</div>}
         {loading ? (
           <div>Loading...</div>
         ) : (

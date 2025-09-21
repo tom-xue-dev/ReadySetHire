@@ -1,6 +1,48 @@
 // Import configuration from centralized config file
 import { API_BASE_URL, API_TIMEOUT } from '../config/api.ts';
 
+// -----------------------------
+// Lightweight API logging utils
+// -----------------------------
+const API_LOG_ENABLED = (() => {
+  try {
+    return ((import.meta && import.meta.env && import.meta.env.VITE_API_LOGS) ? import.meta.env.VITE_API_LOGS === 'true' : true);
+  } catch (_e) {
+    return true; // default to enabled if env not available
+  }
+})();
+
+function generateRequestId() {
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${Date.now().toString(36)}-${rand}`;
+}
+
+function maskHeaders(headers) {
+  const masked = { ...(headers || {}) };
+  if (masked.Authorization) {
+    const token = String(masked.Authorization);
+    masked.Authorization = token.length > 16 ? `${token.slice(0, 12)}...` : '***';
+  }
+  return masked;
+}
+
+function preview(value, max = 200) {
+  try {
+    const text = typeof value === 'string' ? value : JSON.stringify(value);
+    return text.length > max ? `${text.slice(0, max)}…` : text;
+  } catch (_e) {
+    return '[unserializable]';
+  }
+}
+
+function nowMs() {
+  try {
+    return typeof performance !== 'undefined' ? performance.now() : Date.now();
+  } catch (_e) {
+    return Date.now();
+  }
+}
+
 /**
  * Get the current JWT token from localStorage
  */
@@ -24,6 +66,9 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+    const requestId = generateRequestId();
+    const start = nowMs();
+
     const options = {
         method, // Set the HTTP method (GET, POST, PATCH)
         headers: {
@@ -44,25 +89,60 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
     }
 
     try {
+        if (API_LOG_ENABLED) {
+            console.groupCollapsed(`🛰️ API ${method} ${endpoint} [${requestId}]`);
+            console.log('URL:', `${API_BASE_URL}${endpoint}`);
+            console.log('Options:', { ...options, headers: maskHeaders(options.headers) });
+            if (body) console.log('Body:', preview(body));
+            console.groupEnd();
+        }
+
         // Make the API request and check if the response is OK
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
         clearTimeout(timeoutId); // Clear timeout if request completes
 
         if (response.status === 204) {
+            if (API_LOG_ENABLED) {
+                const duration = Math.round(nowMs() - start);
+                console.log(`✅ API ${method} ${endpoint} [${requestId}] → 204 No Content (${duration}ms)`);
+            }
             return null;
         }
         if (!response.ok) {
             const errorText = await response.text().catch(() => 'Unknown error');
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            const duration = Math.round(nowMs() - start);
+            const err = new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            if (API_LOG_ENABLED) {
+                console.error(`❌ API ${method} ${endpoint} [${requestId}] failed (${duration}ms)`, { status: response.status, error: preview(errorText) });
+            }
+            throw err;
         }
 
-        // Return the response as a JSON object
-        return response.json();
+        // Parse JSON once so we can log a preview
+        const json = await response.json();
+        if (API_LOG_ENABLED) {
+            const duration = Math.round(nowMs() - start);
+            const contentLength = response.headers.get('content-length');
+            console.log(`✅ API ${method} ${endpoint} [${requestId}] → ${response.status} (${duration}ms)`, {
+                size: contentLength ? `${contentLength} bytes` : 'unknown',
+                preview: preview(json, 300)
+            });
+        }
+        return json;
     } catch (error) {
         clearTimeout(timeoutId); // Clear timeout on error
         
         if (error.name === 'AbortError') {
-            throw new Error(`Request timeout after ${timeout}ms`);
+            const duration = Math.round(nowMs() - start);
+            const err = new Error(`Request timeout after ${timeout}ms`);
+            if (API_LOG_ENABLED) {
+                console.error(`⏱️  API ${method} ${endpoint} [${requestId}] timed out (${duration}ms)`);
+            }
+            throw err;
+        }
+        if (API_LOG_ENABLED) {
+            const duration = Math.round(nowMs() - start);
+            console.error(`❌ API ${method} ${endpoint} [${requestId}] exception (${duration}ms)`, error);
         }
         throw error; // Re-throw other errors
     }
@@ -90,43 +170,43 @@ export async function getJobs() {
 
 /**
  * Function to get a single job by its ID.
- *
+ * PostgREST style query format to match interview API.
  * @param {string} id - The ID of the job to retrieve.
  * @returns {Promise<object>} - The job object matching the ID.
  */
 export async function getJob(id) {
-    return await apiRequest(`/jobs/${id}`);
+    return apiRequest(`/job?id=eq.${id}`);
 }
 
 /**
  * Function to create a new job.
- *
+ * PostgREST style to match interview API.
  * @param {object} jobData - The job data to create.
  * @returns {Promise<object>} - The created job object.
  */
 export async function createJob(jobData) {
-    return await apiRequest('/jobs', 'POST', jobData);
+    return apiRequest('/job', 'POST', jobData);
 }
 
 /**
  * Function to update a job.
- *
+ * PostgREST style query format to match interview API.
  * @param {string} id - The ID of the job to update.
  * @param {object} jobData - The job data to update.
  * @returns {Promise<object>} - The updated job object.
  */
 export async function updateJob(id, jobData) {
-    return await apiRequest(`/jobs/${id}`, 'PATCH', jobData);
+    return apiRequest(`/job?id=eq.${id}`, 'PATCH', jobData);
 }
 
 /**
  * Function to delete a job.
- *
+ * PostgREST style query format to match interview API.
  * @param {string} id - The ID of the job to delete.
  * @returns {Promise<void>} - No return value.
  */
 export async function deleteJob(id) {
-    return await apiRequest(`/jobs/${id}`, 'DELETE');
+    return apiRequest(`/job?id=eq.${id}`, 'DELETE');
 }
 
 /**
@@ -135,7 +215,7 @@ export async function deleteJob(id) {
  * @returns {Promise<Array>} - An array of interview objects.
  */
 export async function getInterviews() {
-    const response = await apiRequest('/interviews');
+    const response = await apiRequest('/interview');
     // New API returns {data: [], pagination: {}} format
     return response.data || [];
 }
@@ -220,6 +300,8 @@ export async function healthCheck() {
         // Create a controller for timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        const requestId = generateRequestId();
+        const start = nowMs();
         
         // Try a simple endpoint that should always be available
         const response = await fetch(`${API_BASE_URL}/health`, {
@@ -234,14 +316,25 @@ export async function healthCheck() {
         clearTimeout(timeoutId);
         
         if (response.ok) {
+            if (API_LOG_ENABLED) {
+                const duration = Math.round(nowMs() - start);
+                console.log(`✅ API GET /health [${requestId}] → ${response.status} (${duration}ms)`);
+            }
             return { status: 'healthy', timestamp: new Date().toISOString() };
         } else {
-            throw new Error(`Server responded with status: ${response.status}`);
+            const duration = Math.round(nowMs() - start);
+            const err = new Error(`Server responded with status: ${response.status}`);
+            if (API_LOG_ENABLED) {
+                console.error(`❌ API GET /health [${requestId}] failed (${duration}ms)`, { status: response.status });
+            }
+            throw err;
         }
     } catch (error) {
         if (error.name === 'AbortError') {
+            if (API_LOG_ENABLED) console.error('⏱️  API GET /health timed out');
             throw new Error('Connection timeout - server is not responding');
         }
+        if (API_LOG_ENABLED) console.error('❌ API GET /health exception', error);
         throw new Error(`Connection failed: ${error.message}`);
     }
 }
