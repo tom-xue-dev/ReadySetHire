@@ -11,7 +11,7 @@ import HRDashboard from "./pages/HRDashboard";
 import Jobs from "./pages/Jobs";
 import Default from "./pages/Default.tsx";
 import Interviews from "./pages/Interviews.tsx";
-import Applicants from "./pages/Applicants.tsx";
+import Applicant from "./pages/Applicants.tsx";
 import ApplicantPage from "./pages/ApplicantPage.tsx";
 import AudioRecorder from "./pages/AudioRecorder.tsx";
 import Questions from "./pages/Questions.tsx";
@@ -46,11 +46,10 @@ function App() {
                   {/* Database-dependent routes with connection checking */}
                   <Route path="/jobs" element={<Jobs />} />
                   <Route path="/interviews" element={<Interviews />} />
-                  <Route path="/applicants" element={<Applicants />} />
+                  <Route path="/interviews/:interviewId/applicants" element={<Applicant />} />
                   <Route path="/interviews/:id" element={<InterviewDetail />}>
-                    <Route index element={<Navigate to="questions" replace />} />
-                    <Route path="questions" element={<Questions />} />
-                    <Route path="applicants" element={<Applicants />} />
+                  <Route index element={<Navigate to="questions" replace />} />
+                  <Route path="questions" element={<Questions />} />
                   </Route>
                   
                   {/* Interview flow routes - may need connection but less critical */}
@@ -59,7 +58,7 @@ function App() {
                   <Route path="/interview-thanks/:interviewId/:applicantId" element={<InterviewThanks />} />
                   
                   {/* Other routes that may not need immediate database connection */}
-                  <Route path="/applicant" element={<ApplicantPage />} />
+                  <Route path="/applicants" element={<ApplicantPage />} />
                   <Route path="/audio-recorder" element={<AudioRecorder />} />
                   <Route path="/resume-assessment" element={<ResumeAssessment />} />
                   <Route path="/settings" element={<Settings />} />

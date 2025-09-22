@@ -5,17 +5,34 @@ import type { Column } from "../components/DataTable";
 import Modal from "../components/Modal";
 import ApplicantForm from "../components/ApplicantForm";
 import type { Applicant as FormApplicant } from "../components/ApplicantForm";
-import { PencilIcon, TrashIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, TrashIcon, ArrowUturnLeftIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
+import { useAuth } from "../contexts/AuthContext";
 // @ts-ignore JS helper
 import { getApplicantsByInterview, createApplicant, updateApplicant, deleteApplicant } from "../api/helper.js";
 
-type Applicant = Required<FormApplicant> & { id: number };
+type Applicant = Required<FormApplicant> & { 
+  id: number;
+  applicantInterviews?: Array<{
+    id: number;
+    interviewStatus: string;
+    interview: {
+      id: number;
+      title: string;
+      jobRole: string;
+      job?: {
+        id: number;
+        title: string;
+      };
+    };
+  }>;
+};
 
-export default function Applicants() {
-  const { id } = useParams();
+export default function Applicant() {
+  const { interviewId: interviewIdParam } = useParams();
   const navigate = useNavigate();
-  const interviewId = Number(id);
+  const { user } = useAuth();
+  const interviewId = interviewIdParam ? Number(interviewIdParam) : undefined;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,17 +58,46 @@ export default function Applicants() {
 
   const columns: Column<Applicant>[] = useMemo(() => [
     { header: "ID", accessor: "id", width: 70 },
-    { header: "Title", accessor: "title", width: 90 },
     { header: "First Name", accessor: "firstname" },
     { header: "Surname", accessor: "surname" },
     { header: "Phone", accessor: "phone_number", width: 160 },
     { header: "Email", accessor: "email_address", width: 220 },
-    { header: "Status", accessor: "interview_status", width: 140 },
-    { header: "Owner", accessor: "username", width: 140 },
+    { 
+      header: "Interview Status", 
+      width: 140,
+      render: (row: Applicant) => {
+        const interview = row.applicantInterviews?.find(ai => ai.interview.id === interviewId);
+        return interview ? interview.interviewStatus : 'Not Bound';
+      }
+    },
+    { 
+      header: "Interview", 
+      width: 200,
+      render: (row: Applicant) => {
+        const interview = row.applicantInterviews?.find(ai => ai.interview.id === interviewId);
+        return interview ? interview.interview.title : 'Not Bound';
+      }
+    },
+    { 
+      header: "Job", 
+      width: 200,
+      render: (row: Applicant) => {
+        const interview = row.applicantInterviews?.find(ai => ai.interview.id === interviewId);
+        return interview?.interview.job?.title || 'N/A';
+      }
+    },
     {
-      header: "Actions", width: 120,
+      header: "Actions", width: 160,
       render: (row: Applicant) => (
         <div style={{ display: 'flex', gap: 8 }}>
+          <button 
+            onClick={() => navigate(`/interview-welcome/${interviewId}/${row.id}`)} 
+            aria-label="Start Interview" 
+            style={iconBtn}
+            title="Start Interview"
+          >
+            <PlayIcon width={18} height={18} style={{ color: '#059669' }} />
+          </button>
           <button onClick={() => setEditOpen(row)} aria-label="Edit" style={iconBtn}>
             <PencilIcon width={18} height={18} style={{ color: '#2563eb' }} />
           </button>
@@ -61,12 +107,22 @@ export default function Applicants() {
         </div>
       )
     }
-  ], []);
+  ], [interviewId]);
 
   async function handleCreate(values: FormApplicant) {
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
+    
     try {
-      const payload = { ...values, interview_id: interviewId } as FormApplicant;
-      await createApplicant(payload);
+      // Add ownerId to the applicant data
+      const applicantData = {
+        ...values,
+        owner_id: user.id
+      };
+      
+      await createApplicant(applicantData);
       setCreateOpen(false);
       await load();
     } catch (e) {
@@ -76,9 +132,19 @@ export default function Applicants() {
 
   async function handleUpdate(values: FormApplicant) {
     if (!editOpen?.id) return;
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
+    
     try {
-      const payload = { ...values, interview_id: interviewId } as FormApplicant;
-      await updateApplicant(editOpen.id, payload);
+      // Add ownerId to the applicant data
+      const applicantData = {
+        ...values,
+        owner_id: user.id
+      };
+      
+      await updateApplicant(editOpen.id, applicantData);
       setEditOpen(null);
       await load();
     } catch (e) {
@@ -117,12 +183,12 @@ export default function Applicants() {
       )}
 
       <Modal open={createOpen} title="Create Applicant" onClose={() => setCreateOpen(false)}>
-        <ApplicantForm interviewId={interviewId} onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
+        <ApplicantForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
       </Modal>
 
       <Modal open={!!editOpen} title={`Edit Applicant #${editOpen?.id ?? ''}`} onClose={() => setEditOpen(null)}>
         {editOpen && (
-          <ApplicantForm interviewId={interviewId} initial={editOpen} onSubmit={handleUpdate} onCancel={() => setEditOpen(null)} />
+          <ApplicantForm initial={editOpen} onSubmit={handleUpdate} onCancel={() => setEditOpen(null)} />
         )}
       </Modal>
       </section>

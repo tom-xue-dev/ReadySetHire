@@ -28,24 +28,20 @@ export function createRoutes() {
 
 
   // Question routes
-  router.get('/questions', optionalAuth, questionController.getAll.bind(questionController));
-  router.get('/questions/interview/:interviewId', optionalAuth, questionController.getByInterviewId.bind(questionController));
-  router.get('/questions/difficulty/:difficulty', optionalAuth, questionController.getByDifficulty.bind(questionController));
-  router.get('/questions/:id', optionalAuth, questionController.getById.bind(questionController));
-  router.post('/questions', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.create.bind(questionController));
-  router.patch('/questions/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.update.bind(questionController));
-  router.delete('/questions/:id', authenticateToken, requireRole(['ADMIN']), questionController.delete.bind(questionController));
+  router.get('/question', optionalAuth, questionController.getAll.bind(questionController));
+  router.get('/question/interview/:interviewId', optionalAuth, questionController.getByInterviewId.bind(questionController));
+  router.get('/question/difficulty/:difficulty', optionalAuth, questionController.getByDifficulty.bind(questionController));
+  router.get('/question/:id', optionalAuth, questionController.getById.bind(questionController));
+  router.post('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.create.bind(questionController));
+  router.patch('/question/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.update.bind(questionController));
+  router.delete('/question/:id', authenticateToken, requireRole(['ADMIN']), questionController.delete.bind(questionController));
 
-  // Applicant routes
-  router.get('/applicants', authenticateToken, applicantController.getAll.bind(applicantController));
-  router.get('/applicants/interview/:interviewId', authenticateToken, applicantController.getByInterviewId.bind(applicantController));
-  router.get('/applicants/status/:status', authenticateToken, applicantController.getByStatus.bind(applicantController));
-  router.get('/applicants/:id', authenticateToken, applicantController.getById.bind(applicantController));
-  router.get('/applicants/:id/answers', authenticateToken, applicantController.getWithAnswers.bind(applicantController));
-  router.post('/applicants', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.create.bind(applicantController));
-  router.patch('/applicants/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.update.bind(applicantController));
-  router.patch('/applicants/:id/status', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), applicantController.updateStatus.bind(applicantController));
-  router.delete('/applicants/:id', authenticateToken, requireRole(['ADMIN']), applicantController.delete.bind(applicantController));
+  // Applicant routes (specific endpoints)
+  router.get('/applicant/interview/:interviewId', authenticateToken, applicantController.getByInterviewId.bind(applicantController));
+  router.get('/applicant/status/:status', authenticateToken, applicantController.getByStatus.bind(applicantController));
+  router.get('/applicant/:id/answers', authenticateToken, applicantController.getWithAnswers.bind(applicantController));
+  router.post('/applicant/:applicantId/bind', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.bindToInterview.bind(applicantController));
+  router.delete('/applicant/:applicantId/unbind', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.unbindFromInterview.bind(applicantController));
 
   // Applicant Answer routes
   router.get('/applicant_answers', authenticateToken, applicantAnswerController.getAll.bind(applicantAnswerController));
@@ -62,6 +58,43 @@ export function createRoutes() {
   // LEGACY API COMPATIBILITY ROUTES (for frontend compatibility)
   // These routes match the PostgREST-style API calls used by frontend
   // =================================================================
+
+  // Applicant legacy routes - matching frontend API calls (PostgREST style)
+  router.get('/applicant', authenticateToken, async (req, res) => {
+    // Handle query parameter format: /applicant?id=eq.123
+    const idParam = req.query.id;
+    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
+      return applicantController.getById(req, res);
+    } else {
+      // If no id parameter, return all applicants
+      return applicantController.getAll(req, res);
+    }
+  });
+
+  router.post('/applicant', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.create.bind(applicantController));
+
+  router.patch('/applicant', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), async (req, res) => {
+    // Handle query parameter format: /applicant?id=eq.123
+    const idParam = req.query.id;
+    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
+      return applicantController.update(req, res);
+    } else {
+      return res.status(400).json({ error: 'Missing id parameter' });
+    }
+  });
+
+  router.delete('/applicant', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
+    // Handle query parameter format: /applicant?id=eq.123
+    const idParam = req.query.id;
+    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
+      return applicantController.delete(req, res);
+    } else {
+      return res.status(400).json({ error: 'Missing id parameter' });
+    }
+  });
 
   // Interview legacy routes - matching frontend API calls
   router.get('/interview', optionalAuth, async (req, res) => {

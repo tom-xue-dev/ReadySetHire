@@ -216,11 +216,37 @@ export class ApplicantService extends BaseService<any> {
   }
 
   async findByInterviewId(interviewId: number) {
-    return this.findMany({ interviewId });
+    return (this.prisma as any)[this.model].findMany({
+      include: {
+        applicantInterviews: {
+          where: { interviewId },
+          include: {
+            interview: {
+              include: {
+                job: true
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   async findByStatus(status: string) {
-    return this.findMany({ interviewStatus: status });
+    return (this.prisma as any)[this.model].findMany({
+      include: {
+        applicantInterviews: {
+          where: { interviewStatus: status },
+          include: {
+            interview: {
+              include: {
+                job: true
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   async findWithAnswers(applicantId: number) {
@@ -233,9 +259,53 @@ export class ApplicantService extends BaseService<any> {
               question: true,
             },
           },
+          applicantInterviews: {
+            include: {
+              interview: {
+                include: {
+                  job: true
+                }
+              }
+            }
+          }
         },
       }
     );
+  }
+
+  async getAllWithInterviews() {
+    return (this.prisma as any)[this.model].findMany({
+      include: {
+        applicantInterviews: {
+          include: {
+            interview: {
+              include: {
+                job: true
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  async bindToInterview(applicantId: number, interviewId: number, status: string = 'NOT_STARTED') {
+    return (this.prisma as any).applicantInterview.create({
+      data: {
+        applicantId,
+        interviewId,
+        interviewStatus: status
+      }
+    });
+  }
+
+  async unbindFromInterview(applicantId: number, interviewId: number) {
+    return (this.prisma as any).applicantInterview.deleteMany({
+      where: {
+        applicantId,
+        interviewId
+      }
+    });
   }
 }
 

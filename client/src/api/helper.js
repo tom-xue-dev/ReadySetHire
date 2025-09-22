@@ -243,7 +243,7 @@ export async function deleteInterview(id) {
 
 // Question APIs - Updated for new API format
 export async function getQuestions(interviewId) {
-    const response = await apiRequest(`/questions/interview/${interviewId}`);
+    const response = await apiRequest(`/question/interview/${interviewId}`);
     // New API returns {data: [], pagination: {}} format
     return response.data || [];
 }
@@ -260,11 +260,17 @@ export async function deleteQuestion(id) {
     return apiRequest(`/question?id=eq.${id}`, 'DELETE');
 }
 
-// Applicants APIs (by interview) - Updated for new API format
+// Applicants APIs - Updated for new API format
+export async function getAllApplicants() {
+    const response = await apiRequest(`/applicant`);
+    // New API returns applicants with interview bindings
+    return response.data || response || [];
+}
+
 export async function getApplicantsByInterview(interviewId) {
-    const response = await apiRequest(`/applicants/interview/${interviewId}`);
-    // New API returns {data: [], pagination: {}} format
-    return response.data || [];
+    const response = await apiRequest(`/applicant/interview/${interviewId}`);
+    // New API returns applicants with interview bindings
+    return response.data || response || [];
 }
 
 export async function createApplicant(applicant) {
@@ -277,6 +283,14 @@ export async function updateApplicant(id, data) {
 
 export async function deleteApplicant(id) {
     return apiRequest(`/applicant?id=eq.${id}`, 'DELETE');
+}
+
+export async function bindApplicantToInterview(applicantId, interviewId, status = 'NOT_STARTED') {
+    return apiRequest(`/applicant/${applicantId}/bind`, 'POST', { interviewId, status });
+}
+
+export async function unbindApplicantFromInterview(applicantId, interviewId) {
+    return apiRequest(`/applicant/${applicantId}/unbind`, 'DELETE', { interviewId });
 }
 
 // Applicant Answer APIs - Updated for new API format

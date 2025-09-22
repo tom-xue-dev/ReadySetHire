@@ -66,8 +66,8 @@ model Interview {
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   job              Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
   questions        Question[]
-  applicants       Applicant[]
   applicantAnswers ApplicantAnswer[]
+  applicantInterviews ApplicantInterview[]
 
   @@map("interviews")
 }
@@ -90,24 +90,37 @@ model Question {
 }
 
 model Applicant {
+  id           Int      @id @default(autoincrement())
+  firstname    String
+  surname      String
+  phoneNumber  String?  @map("phone_number")
+  emailAddress String   @map("email_address")
+  ownerId      Int      @map("owner_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  owner              User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  applicantAnswers  ApplicantAnswer[]
+  applicantInterviews ApplicantInterview[]
+
+  @@map("applicants")
+}
+
+model ApplicantInterview {
   id              Int      @id @default(autoincrement())
+  applicantId     Int      @map("applicant_id")
   interviewId     Int      @map("interview_id")
-  title           Title
-  firstname       String
-  surname         String
-  phoneNumber     String?  @map("phone_number")
-  emailAddress    String   @map("email_address")
-  interviewStatus InterviewStatus @default(NOT_STARTED) @map("interview_status")
-  userId          Int      @map("user_id")
+  interviewStatus ApplicantInterviewStatus @default(NOT_STARTED) @map("interview_status")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   // Relations
-  interview       Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicantAnswers ApplicantAnswer[]
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
-  @@map("applicants")
+  @@unique([applicantId, interviewId])
+  @@map("applicant_interviews")
 }
 
 model ApplicantAnswer {
@@ -148,14 +161,15 @@ enum InterviewStatus {
   ARCHIVED
 }
 
+enum ApplicantInterviewStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 enum Difficulty {
   EASY
   INTERMEDIATE
   ADVANCED
-}
-
-enum Title {
-  MR
-  MS
-  DR
 }

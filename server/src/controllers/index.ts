@@ -118,7 +118,9 @@ export class InterviewController extends CRUDController<any> {
       }
 
       const interviews = await this.interviewService.findByUserId(userId);
-      res.json(interviews);
+      res.json({
+        data: interviews
+      });
     } catch (error) {
       console.error('Error fetching interviews by user:', error);
       res.status(500).json({ error: 'Failed to fetch interviews' });
@@ -134,7 +136,9 @@ export class InterviewController extends CRUDController<any> {
       }
 
       const interviews = await this.interviewService.findByJobId(jobId);
-      res.json(interviews);
+      res.json({
+        data: interviews
+      });
     } catch (error) {
       console.error('Error fetching interviews by job:', error);
       res.status(500).json({ error: 'Failed to fetch interviews' });
@@ -188,14 +192,36 @@ export class QuestionController extends CRUDController<any> {
     super(questionService);
   }
 
-  protected validateAndTransformData(data: any): any {
-    ValidationUtils.validateRequired(data, ['question', 'interviewId']);
+  protected validateAndTransformData(data: any, req?: any): any {
+    // Handle both camelCase and snake_case field names from frontend
+    const interviewId = data.interviewId || data.interview_id;
+    const userId = req?.user?.id || data.userId || data.user_id;
+    
+    ValidationUtils.validateRequired(data, ['question']);
+    
+    // Check required fields with proper field names
+    if (!interviewId) {
+      throw new Error('Missing required field: interviewId');
+    }
+    
+    if (!userId) {
+      throw new Error('Missing required field: userId - user must be authenticated');
+    }
+    
+    // Convert difficulty to uppercase enum value
+    let difficulty = 'EASY';
+    if (data.difficulty) {
+      const diff = String(data.difficulty).toUpperCase();
+      if (['EASY', 'INTERMEDIATE', 'ADVANCED'].includes(diff)) {
+        difficulty = diff;
+      }
+    }
     
     return {
       question: ValidationUtils.sanitizeString(data.question),
-      difficulty: data.difficulty || 'EASY',
-      interviewId: data.interviewId || data.interview_id,
-      userId: data.userId || data.user_id
+      difficulty: difficulty,
+      interviewId: interviewId,
+      userId: userId
     };
   }
 
@@ -208,7 +234,9 @@ export class QuestionController extends CRUDController<any> {
       }
 
       const questions = await this.questionService.findByInterviewId(interviewId);
-      res.json(questions);
+      res.json({
+        data: questions
+      });
     } catch (error) {
       console.error('Error fetching questions by interview:', error);
       res.status(500).json({ error: 'Failed to fetch questions' });
@@ -224,7 +252,9 @@ export class QuestionController extends CRUDController<any> {
       }
 
       const questions = await this.questionService.findByDifficulty(difficulty);
-      res.json(questions);
+      res.json({
+        data: questions
+      });
     } catch (error) {
       console.error('Error fetching questions by difficulty:', error);
       res.status(500).json({ error: 'Failed to fetch questions' });
@@ -238,27 +268,50 @@ export class ApplicantController extends CRUDController<any> {
     super(applicantService);
   }
 
-  protected validateAndTransformData(data: any): any {
-    ValidationUtils.validateRequired(data, ['firstname', 'surname', 'emailAddress', 'interviewId']);
+  protected validateAndTransformData(data: any, req?: any): any {
+    // Handle both camelCase and snake_case field names from frontend
+    const emailAddress = data.emailAddress || data.email_address;
+    const phoneNumber = data.phoneNumber || data.phone_number;
+    const ownerId = req?.user?.id || data.ownerId || data.owner_id;
     
-    if (!ValidationUtils.validateEmail(data.emailAddress)) {
+    ValidationUtils.validateRequired(data, ['firstname', 'surname']);
+    
+    // Check required fields with proper field names
+    if (!emailAddress) {
+      throw new Error('Missing required field: emailAddress');
+    }
+    
+    if (!ownerId) {
+      throw new Error('Missing required field: ownerId - user must be authenticated');
+    }
+    
+    if (!ValidationUtils.validateEmail(emailAddress)) {
       throw new Error('Invalid email address');
     }
 
-    if (data.phoneNumber && !ValidationUtils.validatePhone(data.phoneNumber)) {
+    if (phoneNumber && !ValidationUtils.validatePhone(phoneNumber)) {
       throw new Error('Invalid phone number');
     }
 
     return {
       firstname: ValidationUtils.sanitizeString(data.firstname),
       surname: ValidationUtils.sanitizeString(data.surname),
-      title: data.title || 'MR',
-      phoneNumber: data.phoneNumber ? ValidationUtils.sanitizeString(data.phoneNumber) : null,
-      emailAddress: ValidationUtils.sanitizeString(data.emailAddress),
-      interviewStatus: data.interviewStatus || 'NOT_STARTED',
-      interviewId: data.interviewId || data.interview_id,
-      userId: data.userId || data.user_id
+      phoneNumber: phoneNumber ? ValidationUtils.sanitizeString(phoneNumber) : null,
+      emailAddress: ValidationUtils.sanitizeString(emailAddress),
+      ownerId: ownerId
     };
+  }
+
+  async getAll(req: Request, res: Response): Promise<void> {
+    try {
+      const applicants = await this.applicantService.getAllWithInterviews();
+      res.json({
+        data: applicants
+      });
+    } catch (error) {
+      console.error('Error fetching applicants:', error);
+      res.status(500).json({ error: 'Failed to fetch applicants' });
+    }
   }
 
   async getByInterviewId(req: Request, res: Response): Promise<void> {
@@ -270,7 +323,9 @@ export class ApplicantController extends CRUDController<any> {
       }
 
       const applicants = await this.applicantService.findByInterviewId(interviewId);
-      res.json(applicants);
+      res.json({
+        data: applicants
+      });
     } catch (error) {
       console.error('Error fetching applicants by interview:', error);
       res.status(500).json({ error: 'Failed to fetch applicants' });
@@ -286,7 +341,9 @@ export class ApplicantController extends CRUDController<any> {
       }
 
       const applicants = await this.applicantService.findByStatus(status);
-      res.json(applicants);
+      res.json({
+        data: applicants
+      });
     } catch (error) {
       console.error('Error fetching applicants by status:', error);
       res.status(500).json({ error: 'Failed to fetch applicants' });
@@ -314,29 +371,49 @@ export class ApplicantController extends CRUDController<any> {
     }
   }
 
-  async updateStatus(req: Request, res: Response): Promise<void> {
+  async bindToInterview(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-      const { status } = req.body;
+      const applicantId = parseInt(req.params.applicantId);
+      const { interviewId, status = 'NOT_STARTED' } = req.body;
 
-      if (isNaN(id)) {
-        res.status(400).json({ error: 'Invalid ID format' });
+      if (isNaN(applicantId)) {
+        res.status(400).json({ error: 'Invalid applicant ID format' });
         return;
       }
 
-      if (!ValidationUtils.validateEnum(status, ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'])) {
-        res.status(400).json({ error: 'Invalid status' });
+      if (!interviewId) {
+        res.status(400).json({ error: 'Interview ID is required' });
         return;
       }
 
-      const applicant = await this.applicantService.update(
-        id,
-        { interviewStatus: status }
-      );
-      res.json(applicant);
+      const result = await this.applicantService.bindToInterview(applicantId, interviewId, status);
+      res.json(result);
     } catch (error) {
-      console.error('Error updating applicant status:', error);
-      res.status(500).json({ error: 'Failed to update applicant status' });
+      console.error('Error binding applicant to interview:', error);
+      res.status(500).json({ error: 'Failed to bind applicant to interview' });
+    }
+  }
+
+  async unbindFromInterview(req: Request, res: Response): Promise<void> {
+    try {
+      const applicantId = parseInt(req.params.applicantId);
+      const { interviewId } = req.body;
+
+      if (isNaN(applicantId)) {
+        res.status(400).json({ error: 'Invalid applicant ID format' });
+        return;
+      }
+
+      if (!interviewId) {
+        res.status(400).json({ error: 'Interview ID is required' });
+        return;
+      }
+
+      await this.applicantService.unbindFromInterview(applicantId, interviewId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error unbinding applicant from interview:', error);
+      res.status(500).json({ error: 'Failed to unbind applicant from interview' });
     }
   }
 }
@@ -368,7 +445,9 @@ export class ApplicantAnswerController extends CRUDController<any> {
       }
 
       const answers = await this.applicantAnswerService.findByApplicantId(applicantId);
-      res.json(answers);
+      res.json({
+        data: answers
+      });
     } catch (error) {
       console.error('Error fetching answers by applicant:', error);
       res.status(500).json({ error: 'Failed to fetch answers' });
@@ -384,7 +463,9 @@ export class ApplicantAnswerController extends CRUDController<any> {
       }
 
       const answers = await this.applicantAnswerService.findByQuestionId(questionId);
-      res.json(answers);
+      res.json({
+        data: answers
+      });
     } catch (error) {
       console.error('Error fetching answers by question:', error);
       res.status(500).json({ error: 'Failed to fetch answers' });
@@ -400,7 +481,9 @@ export class ApplicantAnswerController extends CRUDController<any> {
       }
 
       const answers = await this.applicantAnswerService.findByInterviewId(interviewId);
-      res.json(answers);
+      res.json({
+        data: answers
+      });
     } catch (error) {
       console.error('Error fetching answers by interview:', error);
       res.status(500).json({ error: 'Failed to fetch answers' });

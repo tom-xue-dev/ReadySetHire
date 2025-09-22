@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 export type Question = {
   id?: number;
@@ -19,10 +20,11 @@ export default function QuestionForm({
   onSubmit: (values: Question) => void;
   onCancel: () => void;
 }) {
-  const valuesRef = { ...defaults(interviewId), ...initial } as Question;
+  const { user } = useAuth();
+  const valuesRef = { ...defaults(interviewId, user?.username), ...initial } as Question;
 
-  function defaults(interview_id: number): Question {
-    return { id: undefined, interview_id, question: "", difficulty: "Easy", username: "s10000" };
+  function defaults(interview_id: number, username: string = "unknown"): Question {
+    return { id: undefined, interview_id, question: "", difficulty: "Easy", username };
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -33,10 +35,10 @@ export default function QuestionForm({
       interview_id: valuesRef.interview_id,
       question: String(formData.get('question') || ''),
       difficulty: String(formData.get('difficulty') || 'Easy'),
-      username: String(formData.get('username') || 's10000'),
+      username: valuesRef.username, // Use current user's username
     };
     onSubmit(payload);
-  }
+  } 
 
   const field: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6 };
   const label: CSSProperties = { fontSize: 13, color: '#374151' };
@@ -48,19 +50,13 @@ export default function QuestionForm({
         <label style={label}>Question *</label>
         <textarea name="question" defaultValue={valuesRef.question} style={{ ...input, minHeight: 100 }} required />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div style={field}>
-          <label style={label}>Difficulty *</label>
-          <select name="difficulty" defaultValue={valuesRef.difficulty} style={input} required>
-            <option value="Easy">Easy</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-          </select>
-        </div>
-        <div style={field}>
-          <label style={label}>Username *</label>
-          <input name="username" defaultValue={valuesRef.username} style={input} required />
-        </div>
+      <div style={field}>
+        <label style={label}>Difficulty *</label>
+        <select name="difficulty" defaultValue={valuesRef.difficulty} style={input} required>
+          <option value="Easy">Easy</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
         <button type="button" onClick={onCancel} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff' }}>Cancel</button>
