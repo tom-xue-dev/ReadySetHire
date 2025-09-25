@@ -60,7 +60,7 @@ export class CRUDController<T> {
   // POST /resource
   async create(req: Request, res: Response): Promise<void> {
     try {
-      const data = this.validateAndTransformData(req.body);
+      const data = this.validateAndTransformData(req.body, req);
       const item = await this.service.create(data);
       res.status(201).json(item);
     } catch (error) {
@@ -78,7 +78,7 @@ export class CRUDController<T> {
         return;
       }
 
-      const data = this.validateAndTransformData(req.body);
+      const data = this.validateAndTransformData(req.body, req);
       const item = await this.service.update(id, data);
       res.json(item);
     } catch (error) {
@@ -163,7 +163,7 @@ export class CRUDController<T> {
   }
 
   // Override this method in subclasses for custom validation
-  protected validateAndTransformData(data: any): any {
+  protected validateAndTransformData(data: any, req?: any): any {
     return data;
   }
 }

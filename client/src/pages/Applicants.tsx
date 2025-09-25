@@ -5,11 +5,14 @@ import type { Column } from "../components/DataTable";
 import Modal from "../components/Modal";
 import ApplicantForm from "../components/ApplicantForm";
 import type { Applicant as FormApplicant } from "../components/ApplicantForm";
-import { PencilIcon, TrashIcon, ArrowUturnLeftIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, TrashIcon, ArrowUturnLeftIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
 import { useAuth } from "../contexts/AuthContext";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Chip from "../components/ui/Chip";
 // @ts-ignore JS helper
-import { getApplicantsByInterview, createApplicant, updateApplicant, deleteApplicant } from "../api/helper.js";
+import { getApplicantsByInterview, getAllApplicants, bindApplicantToInterview, createApplicant, updateApplicant, deleteApplicant } from "../api/helper.js";
 
 type Applicant = Required<FormApplicant> & { 
   id: number;
@@ -39,6 +42,10 @@ export default function Applicant() {
   const [items, setItems] = useState<Applicant[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState<Applicant | null>(null);
+  const [existingOpen, setExistingOpen] = useState(false);
+  const [existing, setExisting] = useState<Applicant[]>([]);
+  const [existingQ, setExistingQ] = useState("");
+  const [existingLoading, setExistingLoading] = useState(false);
 
   async function load() {
     if (!interviewId) return;
@@ -53,6 +60,41 @@ export default function Applicant() {
       setLoading(false);
     }
   }
+  async function openExistingModal() {
+    if (!interviewId) return;
+    setExistingLoading(true);
+    setExistingQ("");
+    try {
+      const all = await getAllApplicants();
+      const list: Applicant[] = Array.isArray(all) ? all as Applicant[] : [];
+      // Exclude already bound to this interview
+      const unbound = list.filter((a) => !a.applicantInterviews?.some(ai => ai.interview.id === interviewId));
+      setExisting(unbound);
+      setExistingOpen(true);
+    } catch (e) {
+      setError((e as any)?.message ?? 'Load existing failed');
+    } finally {
+      setExistingLoading(false);
+    }
+  }
+
+  const filteredExisting = useMemo(() => {
+    const q = existingQ.trim().toLowerCase();
+    if (!q) return existing;
+    return existing.filter(a => `${a.firstname} ${a.surname} ${a.email_address}`.toLowerCase().includes(q));
+  }, [existing, existingQ]);
+
+  async function handleBindExisting(applicantId: number) {
+    if (!interviewId) return;
+    try {
+      await bindApplicantToInterview(applicantId, interviewId, 'NOT_STARTED');
+      setExistingOpen(false);
+      await load();
+    } catch (e) {
+      alert((e as any)?.message ?? 'Bind failed');
+    }
+  }
+
 
   useEffect(() => { load(); }, [interviewId]);
 
@@ -164,36 +206,97 @@ export default function Applicant() {
 
   return (
     <SimpleConnectionGuard>
-      <section>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <button onClick={() => navigate('/interviews')} aria-label="Back" style={iconBtn}>
-            <ArrowUturnLeftIcon width={18} height={18} />
-          </button>
-          <h2 style={{ margin: 0 }}>Applicants for Interview #{interviewId || '-'}</h2>
-          <SimpleConnectionIndicator />
-          <div style={{ flex: 1 }} />
-          <button onClick={() => setCreateOpen(true)} style={btnPrimary}>New Applicant</button>
+      <section className="min-h-screen bg-zinc-50">
+        {/* Page header */}
+        <div className="sticky" style={{ top: 'var(--app-header-height, 0px)' }}>
+          <div className="bg-white/80 backdrop-blur border-b">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+              <Button variant="outline" onClick={() => navigate('/interviews')} className="inline-flex items-center gap-2">
+                <ArrowUturnLeftIcon className="w-4 h-4" /> Back
+              </Button>
+              <h2 className="text-lg font-semibold text-zinc-900 m-0">Applicants for Interview #{interviewId || '-'}</h2>
+              <SimpleConnectionIndicator />
+              <div className="flex-1" />
+              <div className="flex items-center gap-2">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 inline-flex items-center gap-2" onClick={() => setCreateOpen(true)}>
+                  <PlusIcon className="w-4 h-4" /> New Applicant
+                </Button>
+                <Button variant="outline" onClick={openExistingModal}>Add Existing</Button>
+              </div>
+            </div>
+          </div>
         </div>
 
-      {error && <div style={{ color: '#b91c1c', marginBottom: 8 }}>Error: {error}</div>}
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <DataTable columns={columns} data={items} rowKey={(r) => r.id} emptyText="No applicants" />
-      )}
+        {/* Content */}
+        <main className="max-w-7xl mx-auto p-4">
+          {error && <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded mb-3">Error: {error}</div>}
 
-      <Modal open={createOpen} title="Create Applicant" onClose={() => setCreateOpen(false)}>
-        <ApplicantForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
-      </Modal>
+          {/* Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <Card className="p-4"><div className="text-xs text-zinc-500">Total</div><div className="text-xl font-semibold">{items.length}</div></Card>
+            <Card className="p-4"><div className="text-xs text-zinc-500">Bound</div><div className="text-xl font-semibold">{items.filter(a => a.applicantInterviews?.length).length}</div></Card>
+            <Card className="p-4"><div className="text-xs text-zinc-500">Unbound</div><div className="text-xl font-semibold">{items.filter(a => !a.applicantInterviews?.length).length}</div></Card>
+            <Card className="p-4"><div className="text-xs text-zinc-500">Completed</div><div className="text-xl font-semibold">{items.filter(a => a.applicantInterviews?.some(ai => ai.interviewStatus === 'COMPLETED')).length}</div></Card>
+          </div>
 
-      <Modal open={!!editOpen} title={`Edit Applicant #${editOpen?.id ?? ''}`} onClose={() => setEditOpen(null)}>
-        {editOpen && (
-          <ApplicantForm initial={editOpen} onSubmit={handleUpdate} onCancel={() => setEditOpen(null)} />
-        )}
-      </Modal>
+          <Card className="overflow-hidden">
+            <div className="px-4 py-3 border-b bg-white text-sm text-zinc-500 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Chip>Interview #{interviewId || '-'}</Chip>
+              </div>
+              <div>{items.length} result(s)</div>
+            </div>
+            <div className="overflow-x-auto">
+              {loading ? (
+                <div className="p-6 text-sm text-zinc-500">Loading…</div>
+              ) : (
+                <DataTable columns={columns} data={items} rowKey={(r) => r.id} emptyText="No applicants" />
+              )}
+            </div>
+          </Card>
+        </main>
+
+        {/* Modals */}
+        <Modal open={createOpen} title="Create Applicant" onClose={() => setCreateOpen(false)}>
+          <ApplicantForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
+        </Modal>
+
+        <Modal open={!!editOpen} title={`Edit Applicant #${editOpen?.id ?? ''}`} onClose={() => setEditOpen(null)}>
+          {editOpen && (
+            <ApplicantForm initial={editOpen} onSubmit={handleUpdate} onCancel={() => setEditOpen(null)} />
+          )}
+        </Modal>
+
+        <Modal open={existingOpen} title="Add Existing Applicant" onClose={() => setExistingOpen(false)}>
+          <div className="p-2">
+            <input
+              value={existingQ}
+              onChange={(e) => setExistingQ(e.target.value)}
+              placeholder="Search name or email…"
+              className="w-full mb-3 px-3 py-2 rounded-lg border bg-white focus:outline-none focus:ring"
+            />
+            {existingLoading ? (
+              <div className="text-sm text-zinc-500">Loading…</div>
+            ) : filteredExisting.length === 0 ? (
+              <div className="text-sm text-zinc-500">No candidates</div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto divide-y">
+                {filteredExisting.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between py-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-zinc-900 truncate">{a.firstname} {a.surname}</div>
+                      <div className="text-xs text-zinc-500 truncate">{a.email_address}</div>
+                    </div>
+                    <Button onClick={() => handleBindExisting(a.id)} className="bg-indigo-600 hover:bg-indigo-700">Add</Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Modal>
       </section>
     </SimpleConnectionGuard>
   );
 }
 
-const iconBtn: React.CSSProperties = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 2 };const btnPrimary: React.CSSProperties = { padding: '8px 12px', borderRadius: 6, border: '1px solid #2563eb', background: '#2563eb', color: '#fff' };
+const iconBtn: React.CSSProperties = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 2 };

@@ -1,4 +1,4 @@
-import { JWT_TOKEN } from '../config/api';
+// Remove hardcoded JWT_TOKEN import - we'll get token dynamically
 
 // Backend Whisper API client
 class BackendWhisperClient {
@@ -49,9 +49,13 @@ class BackendWhisperClient {
     }
   }
 
-  async transcribe(audioBuffer: ArrayBuffer): Promise<string> {
+  async transcribe(audioBuffer: ArrayBuffer, token?: string): Promise<string> {
     if (!this.serviceAvailable) {
       throw new Error('Backend Whisper service is not available. Please check if the server is running.');
+    }
+    
+    if (!token) {
+      throw new Error('Authentication token is required for audio transcription.');
     }
     
     try {
@@ -62,7 +66,7 @@ class BackendWhisperClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/octet-stream', // Binary data
-          'Authorization': `Bearer ${JWT_TOKEN}`, // Add JWT token for authentication
+          'Authorization': `Bearer ${token}`, // Use dynamic JWT token for authentication
         },
         body: audioBuffer, // Send ArrayBuffer directly as binary stream
       });
@@ -117,7 +121,7 @@ export async function loadASR(progressCallback?: (data: any) => void) {
   return backendWhisperClient.load(progressCallback);
 }
 
-export async function transcribeWavBlob(audio: Blob): Promise<string> {
+export async function transcribeWavBlob(audio: Blob, token?: string): Promise<string> {
   try {
     console.log('🎤 Starting audio transcription...');
     
@@ -128,12 +132,14 @@ export async function transcribeWavBlob(audio: Blob): Promise<string> {
 
     console.log('🎤 Array buffer:', arrayBuffer);
     
-    return await backendWhisperClient.transcribe(arrayBuffer);
+    return await backendWhisperClient.transcribe(arrayBuffer, token);
   } catch (error: any) {
     console.error('❌ Audio transcription failed:', error);
     
     // Provide more specific error messages based on the error type
-    if (error.message.includes('Network connection failed')) {
+    if (error.message.includes('Authentication token is required')) {
+      throw new Error('Authentication required: Please log in to use audio transcription.');
+    } else if (error.message.includes('Network connection failed')) {
       throw new Error('Network connection failed: Unable to connect to backend Whisper service. Please check if the server is running.');
     } else if (error.message.includes('Backend Whisper endpoint not found')) {
       throw new Error('Backend Whisper endpoint not found. Please check if the server is properly configured.');

@@ -5,6 +5,7 @@ import { getQuestions, getInterview, getAnswersByApplicant, createApplicantAnswe
 import "./InterviewRun.css";
 import EnhancedAudioCapture from "../components/EnhancedAudioCapture";
 import { transcribeWavBlob, createFallbackTranscription, isASRAvailable, resetASRAvailability } from "../api/asr";
+import { useAuth } from "../contexts/AuthContext";
 
 type Question = { id: number; question: string; difficulty?: string };
 
@@ -13,6 +14,7 @@ export default function InterviewRun() {
   const interviewId = Number(interviewIdParam);
   const applicantId = Number(applicantIdParam);
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export default function InterviewRun() {
       // Try ASR first, fallback to manual input if it fails
       if (isASRAvailable()) {
         try {
-          text = await transcribeWavBlob(blob);
+          text = await transcribeWavBlob(blob, token || undefined);
         } catch (asrError: any) {
           console.warn('ASR failed, using fallback:', asrError.message);
           text = await createFallbackTranscription(blob);

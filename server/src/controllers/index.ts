@@ -222,7 +222,7 @@ export class QuestionController extends CRUDController<any> {
       question: ValidationUtils.sanitizeString(data.question),
       difficulty: difficulty,
       interviewId: interviewId,
-      userId: userId
+      userId: req?.user?.id || data.userId || data.user_id,
     };
   }
 
