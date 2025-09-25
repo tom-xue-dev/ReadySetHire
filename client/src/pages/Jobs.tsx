@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from '../components/SimpleConnectionStatus';
 import JobForm from '../components/JobForm';
 import type { Job } from '../types';
@@ -13,6 +13,8 @@ export default function Jobs() {
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT' | 'ARCHIVED' | 'CLOSED'>('ALL');
 
   useEffect(() => {
     load();
@@ -89,230 +91,125 @@ export default function Jobs() {
     }
   };
 
+  const filtered = useMemo(() => {
+    const ql = q.trim().toLowerCase();
+    return jobs.filter(j => {
+      const byText = !ql || `${j.title} ${j.description ?? ''} ${j.location ?? ''}`.toLowerCase().includes(ql);
+      const byStatus = status === 'ALL' || (j.status as any) === status;
+      return byText && byStatus;
+    });
+  }, [jobs, q, status]);
+
   return (
     <SimpleConnectionGuard>
-      <div style={{ padding: '24px' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1f2937' }}>
-              Job Postings
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="min-h-screen bg-zinc-50">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold text-zinc-900">Jobs</h1>
               <SimpleConnectionIndicator />
-              <button
-                onClick={() => setShowForm(true)}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-              >
-                + Add Job
-              </button>
             </div>
+            <div className="flex-1" />
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-xl shadow hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
+            >
+              New Job
+            </button>
           </div>
-          <p style={{ margin: 0, fontSize: '16px', color: '#6b7280' }}>
-            Manage your job postings and requirements.
-          </p>
-        </div>
+        </header>
 
-        {error && (
-          <div style={{
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#dc2626',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '24px'
-          }}>
-            Error: {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <div style={{ fontSize: '18px', color: '#6b7280' }}>Loading jobs...</div>
-          </div>
-        ) : jobs.length === 0 ? (
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '40px',
-            textAlign: 'center',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#1f2937' }}>
-              No jobs yet
-            </h3>
-            <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
-              Create your first job posting to get started
-            </p>
-          </div>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-            gap: '20px'
-          }}>
-            {jobs.map((job) => (
-              <div key={job.id} style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '24px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                transition: 'box-shadow 0.2s'
-              }}>
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#1f2937', flex: 1 }}>
-                    {job.title}
-                  </h3>
-                  <span style={{
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    backgroundColor: getStatusBg(job.status),
-                    color: getStatusColor(job.status),
-                    marginLeft: '12px'
-                  }}>
-                    {job.status}
-                  </span>
+        <main className="max-w-7xl mx-auto p-4 grid grid-cols-12 gap-4">
+          <aside className="col-span-12 md:col-span-3 space-y-4">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
+              <div className="text-sm text-zinc-600 mb-2">Filters</div>
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search title, description, location…"
+                    className="w-full pl-3 pr-3 py-2 rounded-xl border bg-white focus:outline-none focus:ring"
+                  />
                 </div>
-
-                {/* Company and Department */}
-                {(job.company || job.department) && (
-                  <div style={{ marginBottom: '12px', fontSize: '14px', color: '#6b7280' }}>
-                    {job.company && <span>{job.company}</span>}
-                    {job.company && job.department && <span> • </span>}
-                    {job.department && <span>{job.department}</span>}
+                <div>
+                  <div className="text-xs text-zinc-500 mb-1">Status</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(['ALL','PUBLISHED','DRAFT','ARCHIVED','CLOSED'] as const).map(s => (
+                      <button key={s} onClick={() => setStatus(s)} className={`px-2 py-1 rounded-full border text-xs transition ${status===s? 'bg-black text-white border-black':'bg-white hover:bg-zinc-50'}`}>
+                        {s}
+                      </button>
+                    ))}
                   </div>
-                )}
-
-                {/* Location and Salary */}
-                {(job.location || job.salary) && (
-                  <div style={{ marginBottom: '12px', fontSize: '14px', color: '#6b7280' }}>
-                    {job.location && <div>📍 {job.location}</div>}
-                    {job.salary && <div>💰 {job.salary}</div>}
-                  </div>
-                )}
-
-                {/* Description */}
-                <div style={{ marginBottom: '16px' }}>
-                  <p style={{ 
-                    margin: 0, 
-                    fontSize: '14px', 
-                    color: '#374151',
-                    lineHeight: '1.5',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
-                    {job.description}
-                  </p>
                 </div>
-
-                {/* Requirements */}
-                {job.requirements && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <p style={{ 
-                      margin: '0 0 4px 0', 
-                      fontSize: '12px', 
-                      fontWeight: '500',
-                      color: '#6b7280',
-                      textTransform: 'uppercase'
-                    }}>
-                      Requirements
-                    </p>
-                    <p style={{ 
-                      margin: 0, 
-                      fontSize: '13px', 
-                      color: '#374151',
-                      lineHeight: '1.4',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {job.requirements}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                  <button
-                    onClick={() => handleEdit(job)}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: '#f3f4f6',
-                      color: '#374151',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(job.id!)}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: '#fef2f2',
-                      color: '#dc2626',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    Delete
-                  </button>
+                <div className="pt-2 flex gap-2">
+                  <button onClick={() => { setQ(''); setStatus('ALL'); }} className="px-3 py-2 rounded-xl border text-sm">Reset</button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
 
-        {/* Job Form Modal */}
+            <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
+              <div className="text-sm text-zinc-600 mb-2">Totals</div>
+              <div className="text-sm grid grid-cols-2 gap-2">
+                <div className="p-3 rounded-xl bg-zinc-50 border">
+                  <div className="text-xs text-zinc-500">Published</div>
+                  <div className="text-lg font-semibold">{jobs.filter(j => (j.status as any) === 'PUBLISHED').length}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-zinc-50 border">
+                  <div className="text-xs text-zinc-500">Draft</div>
+                  <div className="text-lg font-semibold">{jobs.filter(j => (j.status as any) === 'DRAFT').length}</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <section className="col-span-12 md:col-span-9">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded mb-3">Error: {error}</div>
+            )}
+            <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b bg-white text-sm text-zinc-500">{filtered.length} result(s)</div>
+              <div className="p-4 grid gap-4 md:grid-cols-2">
+                {loading ? (
+                  <div className="text-sm text-zinc-500 p-4">Loading jobs…</div>
+                ) : filtered.length === 0 ? (
+                  <div className="text-sm text-zinc-500 p-4">No jobs</div>
+                ) : (
+                  filtered.map((job) => (
+                    <div key={job.id} className="border rounded-2xl p-4">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h3 className="text-base font-semibold text-zinc-900">{job.title}</h3>
+                        <span className="px-2 py-0.5 rounded-full text-xs border">{job.status as any}</span>
+                      </div>
+                      {job.location && <div className="text-sm text-zinc-600 mb-1">📍 {job.location}</div>}
+                      {job.salary && <div className="text-sm text-zinc-600 mb-2">💰 {job.salary}</div>}
+                      {job.description && (
+                        <p className="text-sm text-zinc-700 line-clamp-3 mb-3">{job.description}</p>
+                      )}
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => handleEdit(job)} className="px-2 py-1.5 rounded-lg border hover:bg-zinc-50">Edit</button>
+                        <button onClick={() => handleDelete(job.id!)} className="px-2 py-1.5 rounded-lg border hover:bg-red-50 text-red-600 border-red-300">Delete</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </section>
+        </main>
+
         {showForm && (
           <Modal open={showForm} onClose={handleCancel}>
             <div style={{ padding: '24px' }}>
               <h2 style={{ margin: '0 0 24px 0', fontSize: '20px', fontWeight: '600', color: '#1f2937' }}>
                 {editingJob ? 'Edit Job' : 'Create New Job'}
               </h2>
-              
               {formError && (
-                <div style={{
-                  backgroundColor: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#dc2626',
-                  padding: '12px',
-                  borderRadius: '6px',
-                  marginBottom: '16px',
-                  fontSize: '14px'
-                }}>
+                <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '14px' }}>
                   {formError}
                 </div>
               )}
-
-              <JobForm
-                initial={editingJob || undefined}
-                onSubmit={handleSubmit}
-                onCancel={handleCancel}
-              />
+              <JobForm initial={editingJob || undefined} onSubmit={handleSubmit} onCancel={handleCancel} />
             </div>
           </Modal>
         )}

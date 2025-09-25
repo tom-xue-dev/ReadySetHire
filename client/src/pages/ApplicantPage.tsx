@@ -6,6 +6,7 @@ import ApplicantForm from "../components/ApplicantForm";
 import type { Applicant as FormApplicant } from "../components/ApplicantForm";
 import { PencilIcon, TrashIcon, PlusIcon, LinkIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../contexts/AuthContext";
+import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
 // @ts-ignore JS helper
 import { getAllApplicants, createApplicant, updateApplicant, deleteApplicant } from "../api/helper.js";
 
@@ -49,6 +50,8 @@ export default function ApplicantPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState<Row | null>(null);
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<"ALL" | "BOUND" | "UNBOUND" | "COMPLETED">("ALL");
 
   useEffect(() => {
     async function load() {
@@ -161,6 +164,28 @@ export default function ApplicantPage() {
     }
   }
 
+  const totals = useMemo(() => {
+    const total = rows.length;
+    const bound = rows.filter(r => r.interviewId).length;
+    const completed = rows.filter(r => r.status === 'COMPLETED').length;
+    const unbound = total - bound;
+    return { total, bound, unbound, completed };
+  }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    return rows.filter(r => {
+      const byText = !query || `${r.name} ${r.email} ${r.phone} ${r.interviewTitle} ${r.jobTitle}`.toLowerCase().includes(query);
+      const byFilter = (
+        filter === 'ALL' ||
+        (filter === 'BOUND' && !!r.interviewId) ||
+        (filter === 'UNBOUND' && !r.interviewId) ||
+        (filter === 'COMPLETED' && r.status === 'COMPLETED')
+      );
+      return byText && byFilter;
+    });
+  }, [rows, q, filter]);
+
   const columns: Column<Row>[] = useMemo(() => [
     { header: 'ID', accessor: 'id', width: 70 },
     { header: 'Name', accessor: 'name' },
@@ -202,43 +227,118 @@ export default function ApplicantPage() {
   ], []);
 
   return (
-    <section>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>All Applicants</h2>
-        <div style={{ flex: 1 }} />
-        <button onClick={() => setCreateOpen(true)} style={btnPrimary}>
-          <PlusIcon width={18} height={18} style={{ marginRight: 4 }} />
-          New Applicant
-        </button>
+    <SimpleConnectionGuard>
+      <div className="min-h-screen bg-zinc-50">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold text-zinc-900">Applicants</h1>
+              <SimpleConnectionIndicator />
+            </div>
+            <div className="flex-1" />
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-xl shadow hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
+            >
+              New Applicant
+            </button>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto p-4 grid grid-cols-12 gap-4">
+          <aside className="col-span-12 md:col-span-3 space-y-4">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
+              <div className="text-sm text-zinc-600 mb-2">Filters</div>
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search name, email, phone…"
+                    className="w-full pl-3 pr-3 py-2 rounded-xl border bg-white focus:outline-none focus:ring"
+                  />
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 mb-1">Status</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(["ALL","BOUND","UNBOUND","COMPLETED"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setFilter(s)}
+                        className={`px-2 py-1 rounded-full border text-xs transition ${filter===s ? 'bg-black text-white border-black' : 'bg-white hover:bg-zinc-50'}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="pt-2 flex gap-2">
+                  <button onClick={() => { setQ(''); setFilter('ALL'); }} className="px-3 py-2 rounded-xl border text-sm">Reset</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
+              <div className="text-sm text-zinc-600 mb-2">Totals</div>
+              <div className="text-sm grid grid-cols-2 gap-2">
+                <div className="p-3 rounded-xl bg-zinc-50 border">
+                  <div className="text-xs text-zinc-500">Total</div>
+                  <div className="text-lg font-semibold">{totals.total}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-zinc-50 border">
+                  <div className="text-xs text-zinc-500">Bound</div>
+                  <div className="text-lg font-semibold">{totals.bound}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-zinc-50 border">
+                  <div className="text-xs text-zinc-500">Unbound</div>
+                  <div className="text-lg font-semibold">{totals.unbound}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-zinc-50 border">
+                  <div className="text-xs text-zinc-500">Completed</div>
+                  <div className="text-lg font-semibold">{totals.completed}</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <section className="col-span-12 md:col-span-9">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded mb-3">Error: {error}</div>
+            )}
+            <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b bg-white text-sm text-zinc-500">{filteredRows.length} result(s)</div>
+              <div className="overflow-x-auto">
+                {loading ? (
+                  <div className="p-6 text-sm text-zinc-500">Loading…</div>
+                ) : (
+                  <DataTable columns={columns} data={filteredRows} rowKey={(r) => r.id} emptyText="No applicants" />
+                )}
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <Modal open={createOpen} title="Create Applicant" onClose={() => setCreateOpen(false)}>
+          <ApplicantForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
+        </Modal>
+
+        <Modal open={!!editOpen} title={`Edit Applicant #${editOpen?.id ?? ''}`} onClose={() => setEditOpen(null)}>
+          {editOpen && (
+            <ApplicantForm 
+              initial={{
+                id: editOpen.id,
+                firstname: editOpen.name.split(' ')[0] || '',
+                surname: editOpen.name.split(' ').slice(1).join(' ') || '',
+                phone_number: editOpen.phone,
+                email_address: editOpen.email
+              }} 
+              onSubmit={handleUpdate} 
+              onCancel={() => setEditOpen(null)} 
+            />
+          )}
+        </Modal>
       </div>
-      
-      {error && <div style={{ color: '#b91c1c', marginBottom: 8 }}>Error: {error}</div>}
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <DataTable columns={columns} data={rows} rowKey={(r) => r.id} emptyText="No applicants" />
-      )}
-
-      <Modal open={createOpen} title="Create Applicant" onClose={() => setCreateOpen(false)}>
-        <ApplicantForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
-      </Modal>
-
-      <Modal open={!!editOpen} title={`Edit Applicant #${editOpen?.id ?? ''}`} onClose={() => setEditOpen(null)}>
-        {editOpen && (
-          <ApplicantForm 
-            initial={{
-              id: editOpen.id,
-              firstname: editOpen.name.split(' ')[0] || '',
-              surname: editOpen.name.split(' ').slice(1).join(' ') || '',
-              phone_number: editOpen.phone,
-              email_address: editOpen.email
-            }} 
-            onSubmit={handleUpdate} 
-            onCancel={() => setEditOpen(null)} 
-          />
-        )}
-      </Modal>
-    </section>
+    </SimpleConnectionGuard>
   );
 }
 
