@@ -87,16 +87,33 @@ export class InterviewController extends CRUDController<any> {
   }
 
   protected validateAndTransformData(data: any, req?: any): any {
-    ValidationUtils.validateRequired(data, ['title', 'jobRole']);
-    
-    return {
-      title: ValidationUtils.sanitizeString(data.title),
-      jobRole: ValidationUtils.sanitizeString(data.jobRole),
-      description: data.description ? ValidationUtils.sanitizeString(data.description) : null,
-      status: data.status || 'DRAFT',
-      userId: req?.user?.id || data.userId || data.user_id,
-      jobId: data.jobId || data.job_id
-    };
+    const isUpdate = req?.method === 'PATCH' || req?.method === 'PUT';
+
+    // For create, require essential fields. For update, allow partial payloads
+    if (!isUpdate) {
+      ValidationUtils.validateRequired(data, ['title', 'jobRole']);
+    }
+
+    // Build payload conditionally to avoid overwriting fields with undefined
+    const out: any = {};
+
+    if (isUpdate) {
+      if (data.title !== undefined) out.title = ValidationUtils.sanitizeString(data.title);
+      if (data.jobRole !== undefined) out.jobRole = ValidationUtils.sanitizeString(data.jobRole);
+      if (data.description !== undefined) out.description = data.description ? ValidationUtils.sanitizeString(data.description) : null;
+      if (data.status !== undefined) out.status = data.status;
+      if (data.jobId !== undefined || data.job_id !== undefined) out.jobId = data.jobId ?? data.job_id;
+      // Do not change userId on update
+    } else {
+      out.title = ValidationUtils.sanitizeString(data.title);
+      out.jobRole = ValidationUtils.sanitizeString(data.jobRole);
+      out.description = data.description ? ValidationUtils.sanitizeString(data.description) : null;
+      out.status = data.status || 'DRAFT';
+      out.userId = req?.user?.id || data.userId || data.user_id;
+      if (data.jobId || data.job_id) out.jobId = data.jobId || data.job_id;
+    }
+
+    return out;
   }
 
   async create(req: Request, res: Response): Promise<void> {
@@ -243,6 +260,8 @@ export class QuestionController extends CRUDController<any> {
       res.status(500).json({ error: 'Failed to fetch questions' });
     }
   }
+
+  // (removed misplaced method)
 
   async getByDifficulty(req: Request, res: Response): Promise<void> {
     try {
@@ -398,7 +417,34 @@ export class ApplicantController extends CRUDController<any> {
   async unbindFromInterview(req: Request, res: Response): Promise<void> {
     try {
       const applicantId = parseInt(req.params.applicantId);
-      const { interviewId } = req.body;
+      // Accept interviewId from body or query for flexibility
+      let interviewId: any = (req.body && (req.body.interviewId ?? req.body.interview_id)) ?? req.query.interviewId;
+      if (typeof interviewId === 'string' && interviewId.startsWith('eq.')) {
+        interviewId = interviewId.substring(3);
+      }
+
+      if (isNaN(applicantId)) {
+        res.status(400).json({ error: 'Invalid applicant ID format' });
+        return;
+      }
+
+      if (!interviewId || isNaN(Number(interviewId))) {
+        res.status(400).json({ error: 'Interview ID is required' });
+        return;
+      }
+
+      await this.applicantService.unbindFromInterview(applicantId, Number(interviewId));
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error unbinding applicant from interview:', error);
+      res.status(500).json({ error: 'Failed to unbind applicant from interview' });
+    }
+  }
+
+  async updateInterviewStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const applicantId = parseInt(req.params.applicantId);
+      const { interviewId, status } = req.body;
 
       if (isNaN(applicantId)) {
         res.status(400).json({ error: 'Invalid applicant ID format' });
@@ -410,11 +456,16 @@ export class ApplicantController extends CRUDController<any> {
         return;
       }
 
-      await this.applicantService.unbindFromInterview(applicantId, interviewId);
-      res.status(204).send();
+      if (!ValidationUtils.validateEnum(String(status), ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])) {
+        res.status(400).json({ error: 'Invalid status' });
+        return;
+      }
+
+      const result = await this.applicantService.updateInterviewStatus(applicantId, Number(interviewId), String(status));
+      res.json({ count: result.count });
     } catch (error) {
-      console.error('Error unbinding applicant from interview:', error);
-      res.status(500).json({ error: 'Failed to unbind applicant from interview' });
+      console.error('Error updating applicant interview status:', error);
+      res.status(500).json({ error: 'Failed to update applicant interview status' });
     }
   }
 }
@@ -425,16 +476,38 @@ export class ApplicantAnswerController extends CRUDController<any> {
     super(applicantAnswerService);
   }
 
-  protected validateAndTransformData(data: any): any {
-    ValidationUtils.validateRequired(data, ['interviewId', 'questionId', 'applicantId']);
-    
-    return {
-      answer: data.answer ? ValidationUtils.sanitizeString(data.answer) : null,
-      interviewId: data.interviewId || data.interview_id,
-      questionId: data.questionId || data.question_id,
-      applicantId: data.applicantId || data.applicant_id,
-      userId: data.userId || data.user_id
-    };
+  protected validateAndTransformData(data: any, req?: any): any {
+    const isUpdate = req?.method === 'PATCH' || req?.method === 'PUT';
+
+    const interviewId = data.interviewId ?? data.interview_id;
+    const questionId = data.questionId ?? data.question_id;
+    const applicantId = data.applicantId ?? data.applicant_id;
+    const userId = req?.user?.id || data.userId || data.user_id;
+
+    if (!isUpdate) {
+      if (!interviewId || !questionId || !applicantId) {
+        throw new Error('Missing required fields: interviewId, questionId, applicantId');
+      }
+    }
+
+    const out: any = {};
+
+    if (isUpdate) {
+      if (data.answer !== undefined) out.answer = data.answer ? ValidationUtils.sanitizeString(data.answer) : null;
+      if (interviewId !== undefined) out.interviewId = interviewId;
+      if (questionId !== undefined) out.questionId = questionId;
+      if (applicantId !== undefined) out.applicantId = applicantId;
+      // do not overwrite userId on update unless explicitly provided or from req
+      if (userId) out.userId = userId;
+    } else {
+      out.answer = data.answer ? ValidationUtils.sanitizeString(data.answer) : null;
+      out.interviewId = interviewId;
+      out.questionId = questionId;
+      out.applicantId = applicantId;
+      out.userId = userId;
+    }
+
+    return out;
   }
 
   async getByApplicantId(req: Request, res: Response): Promise<void> {
@@ -487,6 +560,23 @@ export class ApplicantAnswerController extends CRUDController<any> {
       });
     } catch (error) {
       console.error('Error fetching answers by interview:', error);
+      res.status(500).json({ error: 'Failed to fetch answers' });
+    }
+  }
+
+  async getByInterviewAndApplicant(req: Request, res: Response): Promise<void> {
+    try {
+      const interviewId = parseInt(req.params.interviewId);
+      const applicantId = parseInt(req.params.applicantId);
+      if (isNaN(interviewId) || isNaN(applicantId)) {
+        res.status(400).json({ error: 'Invalid interview/applicant ID format' });
+        return;
+      }
+
+      const answers = await this.applicantAnswerService.findByInterviewAndApplicant(interviewId, applicantId);
+      res.json({ data: answers });
+    } catch (error) {
+      console.error('Error fetching answers by interview and applicant:', error);
       res.status(500).json({ error: 'Failed to fetch answers' });
     }
   }

@@ -30,26 +30,105 @@ export function createRoutes() {
 
 
   // Question routes
-  router.get('/question', optionalAuth, questionController.getAll.bind(questionController));
+  // Support PostgREST-style GET: /question?id=eq.{id}
+  router.get('/question', optionalAuth, async (req, res) => {
+    const idParam = req.query.id;
+    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+      req.params.id = idParam.substring(3);
+      return questionController.getById(req, res);
+    } else {
+      return questionController.getAll(req, res);
+    }
+  });
   router.get('/question/interview/:interviewId', optionalAuth, questionController.getByInterviewId.bind(questionController));
   router.get('/question/difficulty/:difficulty', optionalAuth, questionController.getByDifficulty.bind(questionController));
   router.get('/question/:id', optionalAuth, questionController.getById.bind(questionController));
   router.post('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.create.bind(questionController));
   router.patch('/question/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.update.bind(questionController));
-  router.delete('/question/:id', authenticateToken, requireRole(['ADMIN']), questionController.delete.bind(questionController));
+  router.delete('/question/:id', authenticateToken, requireRole(['ADMIN','RECRUITER']), questionController.delete.bind(questionController));
 
+  // Legacy PostgREST-style PATCH/DELETE: /question?id=eq.{id}
+  router.patch('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), async (req, res) => {
+    const idParam = req.query.id;
+    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+      req.params.id = idParam.substring(3);
+      return questionController.update(req, res);
+    } else {
+      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
+    }
+  });
+
+  router.delete('/question', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
+    const idParam = req.query.id;
+    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+      req.params.id = idParam.substring(3);
+      return questionController.delete(req, res);
+    } else {
+      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
+    }
+  });
+  
   // Applicant routes (specific endpoints)
   router.get('/applicant/interview/:interviewId', authenticateToken, applicantController.getByInterviewId.bind(applicantController));
   router.get('/applicant/status/:status', authenticateToken, applicantController.getByStatus.bind(applicantController));
   router.get('/applicant/:id/answers', authenticateToken, applicantController.getWithAnswers.bind(applicantController));
   router.post('/applicant/:applicantId/bind', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.bindToInterview.bind(applicantController));
   router.delete('/applicant/:applicantId/unbind', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.unbindFromInterview.bind(applicantController));
+  router.patch('/applicant/:applicantId/interview_status', authenticateToken, applicantController.updateInterviewStatus.bind(applicantController));
+
+
+    // Applicant legacy routes - matching frontend API calls (PostgREST style)
+    router.get('/applicant', authenticateToken, async (req, res) => {
+      // Handle query parameter format: /applicant?id=eq.123
+      const idParam = req.query.id;
+      if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+        req.params.id = idParam.substring(3); // Remove 'eq.' prefix
+        return applicantController.getById(req, res);
+      } else {
+        // If no id parameter, return all applicants
+        return applicantController.getAll(req, res);
+      }
+    });
+  
+    router.post('/applicant', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.create.bind(applicantController));
+  
+    router.delete('/applicant', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
+      // Handle query parameter format: /applicant?id=eq.123
+      const idParam = req.query.id;
+      if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
+        req.params.id = idParam.substring(3); // Remove 'eq.' prefix
+        return applicantController.delete(req, res);
+      } else {
+        return res.status(400).json({ error: 'Missing id parameter' });
+      }
+    });
+
+  // Bind applicant to interview (preferred): POST /interviews/:interviewId/applicants { applicant_id, status? }
+  router.post('/interviews/:interviewId/applicants', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
+    const interviewId = parseInt(req.params.interviewId);
+    const applicantIdRaw = (req.body && (req.body.applicant_id ?? req.body.applicantId));
+    const status = (req.body && (req.body.status)) || 'NOT_STARTED';
+
+    if (isNaN(interviewId)) {
+      return res.status(400).json({ error: 'Invalid interview ID format' });
+    }
+    const applicantId = Number(applicantIdRaw);
+    if (isNaN(applicantId)) {
+      return res.status(400).json({ error: 'Invalid applicant ID format' });
+    }
+
+    // Reuse controller logic
+    (req as any).params.applicantId = String(applicantId);
+    (req as any).body = { interviewId, status };
+    return applicantController.bindToInterview(req, res);
+  });
 
   // Applicant Answer routes
   router.get('/applicant_answers', authenticateToken, applicantAnswerController.getAll.bind(applicantAnswerController));
   router.get('/applicant_answers/applicant/:applicantId', authenticateToken, applicantAnswerController.getByApplicantId.bind(applicantAnswerController));
   router.get('/applicant_answers/question/:questionId', authenticateToken, applicantAnswerController.getByQuestionId.bind(applicantAnswerController));
   router.get('/applicant_answers/interview/:interviewId', authenticateToken, applicantAnswerController.getByInterviewId.bind(applicantAnswerController));
+  router.get('/applicant_answers/interview/:interviewId/applicant/:applicantId', authenticateToken, applicantAnswerController.getByInterviewAndApplicant.bind(applicantAnswerController));
   router.get('/applicant_answers/:id', authenticateToken, applicantAnswerController.getById.bind(applicantAnswerController));
   router.get('/applicant_answers/:id/details', authenticateToken, applicantAnswerController.getWithDetails.bind(applicantAnswerController));
   router.post('/applicant_answers', authenticateToken, applicantAnswerController.create.bind(applicantAnswerController));
@@ -61,42 +140,7 @@ export function createRoutes() {
   // These routes match the PostgREST-style API calls used by frontend
   // =================================================================
 
-  // Applicant legacy routes - matching frontend API calls (PostgREST style)
-  router.get('/applicant', authenticateToken, async (req, res) => {
-    // Handle query parameter format: /applicant?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return applicantController.getById(req, res);
-    } else {
-      // If no id parameter, return all applicants
-      return applicantController.getAll(req, res);
-    }
-  });
 
-  router.post('/applicant', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.create.bind(applicantController));
-
-  router.patch('/applicant', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), async (req, res) => {
-    // Handle query parameter format: /applicant?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return applicantController.update(req, res);
-    } else {
-      return res.status(400).json({ error: 'Missing id parameter' });
-    }
-  });
-
-  router.delete('/applicant', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
-    // Handle query parameter format: /applicant?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return applicantController.delete(req, res);
-    } else {
-      return res.status(400).json({ error: 'Missing id parameter' });
-    }
-  });
 
   // Interview legacy routes - matching frontend API calls
   router.get('/interview', optionalAuth, async (req, res) => {

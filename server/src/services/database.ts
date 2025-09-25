@@ -217,6 +217,11 @@ export class ApplicantService extends BaseService<any> {
 
   async findByInterviewId(interviewId: number) {
     return (this.prisma as any)[this.model].findMany({
+      where: {
+        applicantInterviews: {
+          some: { interviewId }
+        }
+      },
       include: {
         applicantInterviews: {
           where: { interviewId },
@@ -307,6 +312,13 @@ export class ApplicantService extends BaseService<any> {
       }
     });
   }
+
+  async updateInterviewStatus(applicantId: number, interviewId: number, status: string) {
+    return (this.prisma as any).applicantInterview.updateMany({
+      where: { applicantId, interviewId },
+      data: { interviewStatus: status }
+    });
+  }
 }
 
 // ApplicantAnswer service with additional methods
@@ -325,6 +337,10 @@ export class ApplicantAnswerService extends BaseService<any> {
 
   async findByInterviewId(interviewId: number) {
     return this.findMany({ interviewId });
+  }
+
+  async findByInterviewAndApplicant(interviewId: number, applicantId: number) {
+    return this.findMany({ interviewId, applicantId });
   }
 
   async findWithDetails(answerId: number) {

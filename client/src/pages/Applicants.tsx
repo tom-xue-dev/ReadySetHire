@@ -1,21 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import DataTable from "../components/DataTable";
 import type { Column } from "../components/DataTable";
 import Modal from "../components/Modal";
 import ApplicantForm from "../components/ApplicantForm";
 import type { Applicant as FormApplicant } from "../components/ApplicantForm";
-import { PencilIcon, TrashIcon, ArrowUturnLeftIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, TrashIcon, ArrowUturnLeftIcon, PlayIcon, PlusIcon, EyeIcon } from "@heroicons/react/24/solid";
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
 import { useAuth } from "../contexts/AuthContext";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Chip from "../components/ui/Chip";
 // @ts-ignore JS helper
-import { getApplicantsByInterview, getAllApplicants, bindApplicantToInterview, createApplicant, updateApplicant, deleteApplicant } from "../api/helper.js";
+import { getApplicantsByInterview, getAllApplicants, bindApplicantToInterviewV2, unbindApplicantFromInterview, createApplicant, updateApplicant, deleteApplicant } from "../api/helper.js";
 
-type Applicant = Required<FormApplicant> & { 
+type Applicant = {
   id: number;
+  firstname: string;
+  surname: string;
+  // Prefer camelCase (from Prisma), keep snake_case optional for compatibility in some views
+  phoneNumber?: string;
+  emailAddress?: string;
+  phone_number?: string;
+  email_address?: string;
   applicantInterviews?: Array<{
     id: number;
     interviewStatus: string;
@@ -33,9 +40,12 @@ type Applicant = Required<FormApplicant> & {
 
 export default function Applicant() {
   const { interviewId: interviewIdParam } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const interviewId = interviewIdParam ? Number(interviewIdParam) : undefined;
+  const urlParams = new URLSearchParams(location.search);
+  const filterParam = (urlParams.get('filter') || '').toLowerCase();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,13 +91,13 @@ export default function Applicant() {
   const filteredExisting = useMemo(() => {
     const q = existingQ.trim().toLowerCase();
     if (!q) return existing;
-    return existing.filter(a => `${a.firstname} ${a.surname} ${a.email_address}`.toLowerCase().includes(q));
+    return existing.filter(a => `${a.firstname} ${a.surname} ${(a as any).emailAddress || (a as any).email_address || ''}`.toLowerCase().includes(q));
   }, [existing, existingQ]);
 
   async function handleBindExisting(applicantId: number) {
     if (!interviewId) return;
     try {
-      await bindApplicantToInterview(applicantId, interviewId, 'NOT_STARTED');
+      await bindApplicantToInterviewV2(interviewId, applicantId, 'NOT_STARTED');
       setExistingOpen(false);
       await load();
     } catch (e) {
@@ -98,12 +108,23 @@ export default function Applicant() {
 
   useEffect(() => { load(); }, [interviewId]);
 
+  const tableItems = useMemo(() => {
+    if (!interviewId) return items;
+    if (filterParam === 'completed') {
+      return items.filter(a => a.applicantInterviews?.some(ai => ai.interview.id === interviewId && ai.interviewStatus === 'COMPLETED'));
+    }
+    if (filterParam === 'not-started') {
+      return items.filter(a => a.applicantInterviews?.some(ai => ai.interview.id === interviewId && ai.interviewStatus === 'NOT_STARTED'));
+    }
+    return items;
+  }, [items, interviewId, filterParam]);
+
   const columns: Column<Applicant>[] = useMemo(() => [
     { header: "ID", accessor: "id", width: 70 },
     { header: "First Name", accessor: "firstname" },
     { header: "Surname", accessor: "surname" },
-    { header: "Phone", accessor: "phone_number", width: 160 },
-    { header: "Email", accessor: "email_address", width: 220 },
+    { header: "Phone", accessor: "phoneNumber", width: 160 },
+    { header: "Email", accessor: "emailAddress", width: 220 },
     { 
       header: "Interview Status", 
       width: 140,
@@ -129,27 +150,43 @@ export default function Applicant() {
       }
     },
     {
-      header: "Actions", width: 160,
-      render: (row: Applicant) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button 
-            onClick={() => navigate(`/interview-welcome/${interviewId}/${row.id}`)} 
-            aria-label="Start Interview" 
-            style={iconBtn}
-            title="Start Interview"
-          >
-            <PlayIcon width={18} height={18} style={{ color: '#059669' }} />
-          </button>
-          <button onClick={() => setEditOpen(row)} aria-label="Edit" style={iconBtn}>
-            <PencilIcon width={18} height={18} style={{ color: '#2563eb' }} />
-          </button>
-          <button onClick={() => handleDelete(row)} aria-label="Delete" style={iconBtn}>
-            <TrashIcon width={18} height={18} style={{ color: '#ef4444' }} />
-          </button>
-        </div>
-      )
+      header: "Actions", width: 200,
+      render: (row: Applicant) => {
+        const status = row.applicantInterviews?.find(ai => ai.interview.id === interviewId)?.interviewStatus;
+        const isCompletedView = filterParam === 'completed';
+        return (
+          <div style={{ display: 'flex', gap: 8 }}>
+            {isCompletedView ? (
+              <button 
+                onClick={() => navigate(`/interview-answers/${interviewId}/${row.id}`)} 
+                aria-label="View Answers" 
+                style={iconBtn}
+                title="View Answers"
+              >
+                <EyeIcon width={18} height={18} style={{ color: '#0f766e' }} />
+              </button>
+            ) : (
+              <button 
+                onClick={() => navigate(`/interview-welcome/${interviewId}/${row.id}`)} 
+                aria-label="Start Interview" 
+                style={iconBtn}
+                title="Start Interview"
+                disabled={status === 'COMPLETED'}
+              >
+                <PlayIcon width={18} height={18} style={{ color: status === 'COMPLETED' ? '#9ca3af' : '#059669' }} />
+              </button>
+            )}
+            <button onClick={() => setEditOpen(row)} aria-label="Edit" style={iconBtn}>
+              <PencilIcon width={18} height={18} style={{ color: '#2563eb' }} />
+            </button>
+            <button onClick={() => handleDelete(row)} aria-label="Delete" style={iconBtn}>
+              <TrashIcon width={18} height={18} style={{ color: '#ef4444' }} />
+            </button>
+          </div>
+        );
+      }
     }
-  ], [interviewId]);
+  ], [interviewId, filterParam]);
 
   async function handleCreate(values: FormApplicant) {
     if (!user?.id) {
@@ -195,12 +232,13 @@ export default function Applicant() {
   }
 
   async function handleDelete(row: Applicant) {
-    if (!confirm(`Delete applicant #${row.id}?`)) return;
+    if (!interviewId) return;
+    if (!confirm(`Unbind applicant #${row.id} from interview #${interviewId}?`)) return;
     try {
-      await deleteApplicant(row.id);
+      await unbindApplicantFromInterview(row.id, interviewId);
       await load();
     } catch (e) {
-      alert((e as any)?.message ?? 'Delete failed');
+      alert((e as any)?.message ?? 'Unbind failed');
     }
   }
 
@@ -250,7 +288,7 @@ export default function Applicant() {
               {loading ? (
                 <div className="p-6 text-sm text-zinc-500">Loading…</div>
               ) : (
-                <DataTable columns={columns} data={items} rowKey={(r) => r.id} emptyText="No applicants" />
+                <DataTable columns={columns} data={tableItems} rowKey={(r) => r.id} emptyText="No applicants" />
               )}
             </div>
           </Card>
@@ -285,7 +323,7 @@ export default function Applicant() {
                   <div key={a.id} className="flex items-center justify-between py-2">
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-zinc-900 truncate">{a.firstname} {a.surname}</div>
-                      <div className="text-xs text-zinc-500 truncate">{a.email_address}</div>
+                      <div className="text-xs text-zinc-500 truncate">{(a as any).emailAddress || (a as any).email_address}</div>
                     </div>
                     <Button onClick={() => handleBindExisting(a.id)} className="bg-indigo-600 hover:bg-indigo-700">Add</Button>
                   </div>

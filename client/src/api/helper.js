@@ -318,6 +318,10 @@ export async function unbindApplicantFromInterview(applicantId, interviewId) {
     return apiRequest(`/applicant/${applicantId}/unbind`, 'DELETE', { interviewId });
 }
 
+export async function updateApplicantInterviewStatus(applicantId, interviewId, status = 'COMPLETED') {
+    return apiRequest(`/applicant/${applicantId}/interview_status`, 'PATCH', { interviewId, status });
+}
+
 // Applicant Answer APIs - Updated for new API format
 export async function getAnswersByApplicant(applicantId) {
     const response = await apiRequest(`/applicant_answers/applicant/${applicantId}`);
@@ -325,12 +329,17 @@ export async function getAnswersByApplicant(applicantId) {
     return response.data || [];
 }
 
+export async function getAnswersByInterviewAndApplicant(interviewId, applicantId) {
+    const response = await apiRequest(`/applicant_answers/interview/${interviewId}/applicant/${applicantId}`);
+    return response.data || [];
+}
+
 export async function createApplicantAnswer(answer) {
-    return apiRequest(`/applicant_answer`, 'POST', answer);
+    return apiRequest(`/applicant_answers`, 'POST', answer);
 }
 
 export async function updateApplicantAnswer(id, data) {
-    return apiRequest(`/applicant_answer?id=eq.${id}`, 'PATCH', data);
+    return apiRequest(`/applicant_answers/${id}`, 'PATCH', data);
 }
 
 // Health check endpoint for connection testing
@@ -414,3 +423,7 @@ async function main() {
 
 // Do not auto-execute in browser/react environment
 // main();
+
+export async function bindApplicantToInterviewV2(interviewId, applicantId, status = 'NOT_STARTED') {
+    return apiRequest(`/interviews/${interviewId}/applicants`, 'POST', { applicant_id: applicantId, status });
+}

@@ -20,6 +20,7 @@ import InterviewDetail from "./pages/InterviewDetail.tsx";
 import ResumeAssessment from "./pages/ResumeAssessment.tsx";
 import InterviewWelcome from "./pages/InterviewWelcome.tsx";
 import InterviewRun from "./pages/InterviewRun.tsx";
+import InterviewAnswers from "./pages/InterviewAnswers.tsx";
 import InterviewThanks from "./pages/InterviewThanks.tsx";
 import Home from "./pages/Home.tsx";
 import Settings from "./pages/Settings.tsx";
@@ -62,6 +63,7 @@ function AppContent() {
                   <Route path="/interview-welcome/:interviewId/:applicantId" element={<InterviewWelcome />} />
                   <Route path="/interview-run/:interviewId/:applicantId" element={<InterviewRun />} />
                   <Route path="/interview-thanks/:interviewId/:applicantId" element={<InterviewThanks />} />
+                  <Route path="/interview-answers/:interviewId/:applicantId" element={<InterviewAnswers />} />
                   
                   {/* Other routes that may not need immediate database connection */}
                   <Route path="/applicants" element={<ApplicantPage />} />

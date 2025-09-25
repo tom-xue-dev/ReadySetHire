@@ -69,8 +69,17 @@ export default function Interviews() {
             const qCount = Array.isArray(qs) ? qs.length : 0;
             const aList = Array.isArray(apps) ? apps : [];
             const total = aList.length;
-            const completed = aList.filter((a: any) => (a.status ?? a.interview_status ?? a.state) === "Completed").length;
-            const notStarted = aList.filter((a: any) => (a.status ?? a.interview_status ?? a.state) === "Not Started").length;
+            // Count by ApplicantInterview relation status (Prisma enums)
+            const statuses: string[] = aList
+              .map((ap: any) => {
+                const rel = Array.isArray(ap?.applicantInterviews)
+                  ? ap.applicantInterviews.find((ai: any) => ai?.interviewId === iv.id) || ap.applicantInterviews[0]
+                  : undefined;
+                return rel?.interviewStatus as string | undefined;
+              })
+              .filter((s: any) => typeof s === "string") as string[];
+            const completed = statuses.filter((s) => s === "COMPLETED").length;
+            const notStarted = statuses.filter((s) => s === "NOT_STARTED").length;
             return [iv.id, { questions: qCount, applicants: total, completed, notStarted }] as const;
           } catch {
             return [iv.id, { questions: 0, applicants: 0, completed: 0, notStarted: 0 }] as const;

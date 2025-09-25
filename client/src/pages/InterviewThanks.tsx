@@ -1,9 +1,33 @@
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+// @ts-ignore JS helper
+import { updateInterview, updateApplicantInterviewStatus } from "../api/helper.js";
 import "./InterviewThanks.css";
 
 export default function InterviewThanks() {
   const navigate = useNavigate();
-  const { interviewId } = useParams();
+  const { interviewId, applicantId } = useParams();
+
+  useEffect(() => {
+    async function finalize() {
+      if (interviewId && applicantId) {
+        try {
+          await updateApplicantInterviewStatus(Number(applicantId), Number(interviewId), 'COMPLETED');
+        } catch (e) {
+          console.error('Failed to mark applicant interview as COMPLETED:', e);
+        }
+      }
+      if (interviewId) {
+        try {
+          await updateInterview(Number(interviewId), { status: "ARCHIVED" });
+        } catch (e) {
+          // Non-blocking
+          console.error("Failed to archive interview:", e);
+        }
+      }
+    }
+    finalize();
+  }, [interviewId, applicantId]);
 
   return (
     <section className="it-root">
