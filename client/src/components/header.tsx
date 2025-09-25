@@ -16,6 +16,7 @@ export default function Header({ sidebarOpen = false, onToggle }: HeaderProps) {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   const handleSettings = () => {
     navigate('/settings');
@@ -41,9 +42,22 @@ export default function Header({ sidebarOpen = false, onToggle }: HeaderProps) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Expose header height as CSS variable so sticky sub-headers can offset correctly
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const el = headerRef.current;
+      if (!el) return;
+      const h = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--app-header-height', `${h}px`);
+    };
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => window.removeEventListener('resize', updateHeaderHeight);
+  }, []);
   
   return (
-    <header className = "p-[16px] top-0 sticky relative " style = {{backgroundColor: 'gray'}}>
+    <header ref={headerRef} className = "p-[16px] top-0 sticky relative z-50" style = {{backgroundColor: 'gray'}}>
       {/* Static toggle button, above sidebar */}
       <button
         onClick={onToggle}

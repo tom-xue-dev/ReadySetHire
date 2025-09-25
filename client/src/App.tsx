@@ -23,6 +23,7 @@ import InterviewRun from "./pages/InterviewRun.tsx";
 import InterviewThanks from "./pages/InterviewThanks.tsx";
 import Home from "./pages/Home.tsx";
 import Settings from "./pages/Settings.tsx";
+import ResumeManagement from "./pages/ResumeManagement.tsx";
 
 function AppContent() {
   const { showAuthNotification, hideAuthNotification } = useAuth();
@@ -66,6 +67,7 @@ function AppContent() {
                   <Route path="/applicants" element={<ApplicantPage />} />
                   <Route path="/audio-recorder" element={<AudioRecorder />} />
                   <Route path="/resume-assessment" element={<ResumeAssessment />} />
+                  <Route path="/resume-management" element={<ResumeManagement />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="*" element={<Default />} />
                 </Routes>
