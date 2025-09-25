@@ -111,6 +111,31 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
         if (!response.ok) {
             const errorText = await response.text().catch(() => 'Unknown error');
             const duration = Math.round(nowMs() - start);
+            
+            // Handle 401 Unauthorized - token is invalid or expired
+            if (response.status === 401) {
+                console.warn('🔐 Authentication failed - token may be invalid or expired');
+                
+                // Clear invalid token from localStorage
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                
+                // Dispatch a custom event to notify components about authentication failure
+                window.dispatchEvent(new CustomEvent('auth-failed', {
+                    detail: { 
+                        reason: 'Invalid or expired token',
+                        endpoint: endpoint,
+                        method: method
+                    }
+                }));
+                
+                // Redirect to login page if not already there
+                if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+                    console.log('🔄 Redirecting to login page due to authentication failure');
+                    window.location.href = '/login';
+                }
+            }
+            
             const err = new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             if (API_LOG_ENABLED) {
                 console.error(`❌ API ${method} ${endpoint} [${requestId}] failed (${duration}ms)`, { status: response.status, error: preview(errorText) });

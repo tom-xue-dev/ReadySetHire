@@ -1,8 +1,9 @@
 import { Router } from 'express';
+import express from 'express';
 import { authenticateToken, optionalAuth, requireRole, login, register, getProfile, updateProfile } from '../middleware/auth';
-import { JobController, InterviewController, QuestionController, ApplicantController, ApplicantAnswerController } from '../controllers';
+import { JobController, InterviewController, QuestionController, ApplicantController, ApplicantAnswerController, AudioController } from '../controllers';
 import { jobService, interviewService, questionService, applicantService, applicantAnswerService } from '../services/database';
-
+import { whisperService } from '../services/whisper';
 export function createRoutes() {
   const router = Router();
 
@@ -12,6 +13,7 @@ export function createRoutes() {
   const questionController = new QuestionController(questionService);
   const applicantController = new ApplicantController(applicantService);
   const applicantAnswerController = new ApplicantAnswerController(applicantAnswerService);
+  const audioController = new AudioController(whisperService);
 
   // Authentication routes
   router.post('/auth/login', login);
@@ -183,5 +185,14 @@ export function createRoutes() {
   router.patch('/jobs/:id/publish', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.publish.bind(jobController));
   router.delete('/jobs/:id', authenticateToken, requireRole(['ADMIN']), jobController.delete.bind(jobController));
   
+
+
+  // Audio/ASR routes
+  router.head('/model/whisper', (req, res) => {
+    // Health check endpoint for Whisper service (no auth required)
+    res.status(200).end();
+  });
+  router.post('/model/whisper', express.raw({ type: 'application/octet-stream' }),authenticateToken, audioController.transcribe.bind(audioController));
+
   return router;
 }

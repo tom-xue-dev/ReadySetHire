@@ -203,40 +203,58 @@ async function seed() {
     // Create applicants
     const applicants = [
       {
-        interviewId: interview1.id,
-        title: 'MR' as const,
         firstname: 'Alex',
         surname: 'Johnson',
         phoneNumber: '+61 412 345 678',
         emailAddress: 'alex.johnson@email.com',
-        interviewStatus: 'NOT_STARTED' as const,
-        userId: admin.id,
+        ownerId: admin.id,
       },
       {
-        interviewId: interview1.id,
-        title: 'MS' as const,
         firstname: 'Sarah',
         surname: 'Wilson',
         phoneNumber: '+61 423 456 789',
         emailAddress: 'sarah.wilson@email.com',
-        interviewStatus: 'COMPLETED' as const,
-        userId: admin.id,
+        ownerId: admin.id,
       },
       {
-        interviewId: interview2.id,
-        title: 'DR' as const,
         firstname: 'Michael',
         surname: 'Brown',
         phoneNumber: '+61 434 567 890',
         emailAddress: 'michael.brown@email.com',
-        interviewStatus: 'NOT_STARTED' as const,
-        userId: admin.id,
+        ownerId: admin.id,
       },
     ];
 
+    const createdApplicants = [];
     for (const applicantData of applicants) {
-      await prisma.applicant.create({
+      const applicant = await prisma.applicant.create({
         data: applicantData,
+      });
+      createdApplicants.push(applicant);
+    }
+
+    // Create applicant-interview relationships
+    const applicantInterviews = [
+      {
+        applicantId: createdApplicants[0].id,
+        interviewId: interview1.id,
+        interviewStatus: 'NOT_STARTED' as const,
+      },
+      {
+        applicantId: createdApplicants[1].id,
+        interviewId: interview1.id,
+        interviewStatus: 'COMPLETED' as const,
+      },
+      {
+        applicantId: createdApplicants[2].id,
+        interviewId: interview2.id,
+        interviewStatus: 'NOT_STARTED' as const,
+      },
+    ];
+
+    for (const applicantInterviewData of applicantInterviews) {
+      await prisma.applicantInterview.create({
+        data: applicantInterviewData,
       });
     }
 

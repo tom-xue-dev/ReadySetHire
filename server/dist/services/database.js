@@ -173,10 +173,36 @@ class ApplicantService extends BaseService {
         super(prisma, 'applicant');
     }
     async findByInterviewId(interviewId) {
-        return this.findMany({ interviewId });
+        return this.prisma[this.model].findMany({
+            include: {
+                applicantInterviews: {
+                    where: { interviewId },
+                    include: {
+                        interview: {
+                            include: {
+                                job: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
     async findByStatus(status) {
-        return this.findMany({ interviewStatus: status });
+        return this.prisma[this.model].findMany({
+            include: {
+                applicantInterviews: {
+                    where: { interviewStatus: status },
+                    include: {
+                        interview: {
+                            include: {
+                                job: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
     async findWithAnswers(applicantId) {
         return this.findUnique({ id: applicantId }, {
@@ -186,7 +212,48 @@ class ApplicantService extends BaseService {
                         question: true,
                     },
                 },
+                applicantInterviews: {
+                    include: {
+                        interview: {
+                            include: {
+                                job: true
+                            }
+                        }
+                    }
+                }
             },
+        });
+    }
+    async getAllWithInterviews() {
+        return this.prisma[this.model].findMany({
+            include: {
+                applicantInterviews: {
+                    include: {
+                        interview: {
+                            include: {
+                                job: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    async bindToInterview(applicantId, interviewId, status = 'NOT_STARTED') {
+        return this.prisma.applicantInterview.create({
+            data: {
+                applicantId,
+                interviewId,
+                interviewStatus: status
+            }
+        });
+    }
+    async unbindFromInterview(applicantId, interviewId) {
+        return this.prisma.applicantInterview.deleteMany({
+            where: {
+                applicantId,
+                interviewId
+            }
         });
     }
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CRUDController, ValidationUtils, ErrorHandler } from './base';
 import { JobService, InterviewService, QuestionService, ApplicantService, ApplicantAnswerService } from '../services/database';
+import { WhisperService } from '../services/whisper';
 
 // Job Controller
 export class JobController extends CRUDController<any> {
@@ -510,4 +511,26 @@ export class ApplicantAnswerController extends CRUDController<any> {
       res.status(500).json({ error: 'Failed to fetch answer' });
     }
   }
+}
+
+export class AudioController {
+  constructor(private whisperService: WhisperService) {
+    this.whisperService = whisperService;
+  }
+
+  async transcribe(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('req.body type:', typeof req.body);
+      console.log('req.body length:', req.body ? req.body.length : 'no body');
+      console.log('req.headers:', req.headers);
+      console.log('req.body:', req.body);
+      const audioBuffer = req.body;
+      const result = await this.whisperService.transcribe(audioBuffer);
+      console.log('Transcribing audio...');
+      res.json(result);
+      console.log('Transcribed audio finished，res = ',result);
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+  }
+}
 }

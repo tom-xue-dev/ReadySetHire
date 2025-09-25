@@ -1,7 +1,8 @@
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { I18nProvider } from "./contexts/I18nContext";
+import AuthNotification from "./components/AuthNotification";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -23,11 +24,15 @@ import InterviewThanks from "./pages/InterviewThanks.tsx";
 import Home from "./pages/Home.tsx";
 import Settings from "./pages/Settings.tsx";
 
-function App() {
+function AppContent() {
+  const { showAuthNotification, hideAuthNotification } = useAuth();
+  
   return (
-    <I18nProvider>
-      <AuthProvider>
-        <BrowserRouter>
+    <>
+      {showAuthNotification && (
+        <AuthNotification onClose={hideAuthNotification} />
+      )}
+      <BrowserRouter>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -69,6 +74,15 @@ function App() {
           } />
         </Routes>
         </BrowserRouter>
+      </>
+    );
+  }
+
+function App() {
+  return (
+    <I18nProvider>
+      <AuthProvider>
+        <AppContent />
       </AuthProvider>
     </I18nProvider>
   )

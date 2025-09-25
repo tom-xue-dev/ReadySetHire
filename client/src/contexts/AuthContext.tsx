@@ -16,6 +16,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  showAuthNotification: boolean;
+  hideAuthNotification: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAuthNotification, setShowAuthNotification] = useState(false);
 
   useEffect(() => {
     // Check for existing authentication on app load
@@ -49,6 +52,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(false);
   }, []);
 
+  useEffect(() => {
+    // Listen for authentication failure events from API requests
+    const handleAuthFailure = (event: CustomEvent) => {
+      console.log('🔐 Authentication failure detected:', event.detail);
+      
+      // Clear authentication state
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Show notification
+      setShowAuthNotification(true);
+      
+      // Show user-friendly message
+      console.warn('Your session has expired. Please log in again.');
+    };
+
+    window.addEventListener('auth-failed', handleAuthFailure as EventListener);
+    
+    return () => {
+      window.removeEventListener('auth-failed', handleAuthFailure as EventListener);
+    };
+  }, []);
+
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
@@ -63,6 +91,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('user');
   };
 
+  const hideAuthNotification = () => {
+    setShowAuthNotification(false);
+  };
+
   const value: AuthContextType = {
     user,
     token,
@@ -70,6 +102,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     isAuthenticated: !!user && !!token,
     isLoading,
+    showAuthNotification,
+    hideAuthNotification,
   };
 
   return (

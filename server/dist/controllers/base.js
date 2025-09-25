@@ -14,25 +14,13 @@ class CRUDController {
     // GET /resource
     async getAll(req, res) {
         try {
-            const { page = '1', limit = '10', ...filters } = req.query;
-            const pageNum = parseInt(page);
-            const limitNum = parseInt(limit);
-            const offset = (pageNum - 1) * limitNum;
+            const { ...filters } = req.query;
             // Build where clause from query parameters
             const where = this.buildWhereClause(filters);
             console.log(`Fetching ${this.modelName} with where:`, where);
-            const [items, total] = await Promise.all([
-                this.service.findMany(where),
-                this.service.count(where)
-            ]);
+            const items = await this.service.findMany(where);
             res.json({
-                data: items,
-                pagination: {
-                    page: pageNum,
-                    limit: limitNum,
-                    total,
-                    pages: Math.ceil(total / limitNum)
-                }
+                data: items
             });
         }
         catch (error) {
@@ -189,7 +177,8 @@ class ValidationUtils {
         return emailRegex.test(email);
     }
     static validatePhone(phone) {
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        // More flexible phone validation - accepts numbers starting with 0
+        const phoneRegex = /^[\+]?[0-9][\d]{7,15}$/;
         return phoneRegex.test(phone.replace(/\s/g, ''));
     }
     static sanitizeString(str) {

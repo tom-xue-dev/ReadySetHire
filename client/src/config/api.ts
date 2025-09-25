@@ -40,7 +40,7 @@ const getEnvironment = (): string => {
 const DEVELOPMENT_CONFIG: ApiConfig = {
   ...DEFAULT_CONFIG,
   baseUrl: getEnvVar('VITE_API_BASE_URL', 'http://localhost:3000/api'),
-  jwtToken: getEnvVar('VITE_JWT_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic3R1ZGVudCIsInVzZXJuYW1lIjoiczQ4MzEyMjcifQ.YEX2eDDydA3u65FSVQYmtDFR5GgsEDwksjgXFXsrLio'),
+  jwtToken: getEnvVar('VITE_JWT_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJhc3J1c2VyMiIsImVtYWlsIjoiYXNyMkBleGFtcGxlLmNvbSIsInJvbGUiOiJSRUNSVUlURVIiLCJpYXQiOjE3NTg2OTczNjYsImV4cCI6MTc1ODc4Mzc2Nn0.h6kKjMTH-5u9EDiEhvdnJQrSIyjHoZYduYi4fuPG2u0'),
   username: getEnvVar('VITE_USERNAME', 's4831227'),
 };
 
@@ -49,7 +49,7 @@ const PRODUCTION_CONFIG: ApiConfig = {
   ...DEFAULT_CONFIG,
   baseUrl: getEnvVar('VITE_API_BASE_URL', 'https://comp2140a2.uqcloud.net/api'),
   timeout: 15000, // Longer timeout for production
-  jwtToken: getEnvVar('VITE_JWT_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic3R1ZGVudCIsInVzZXJuYW1lIjoiczQ4MzEyMjcifQ.YEX2eDDydA3u65FSVQYmtDFR5GgsEDwksjgXFXsrLio'),
+  jwtToken: getEnvVar('VITE_JWT_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJhc3J1c2VyMiIsImVtYWlsIjoiYXNyMkBleGFtcGxlLmNvbSIsInJvbGUiOiJSRUNSVUlURVIiLCJpYXQiOjE3NTg2OTczNjYsImV4cCI6MTc1ODc4Mzc2Nn0.h6kKjMTH-5u9EDiEhvdnJQrSIyjHoZYduYi4fuPG2u0'),
   username: getEnvVar('VITE_USERNAME', 's4831227'),
 };
 
@@ -57,7 +57,7 @@ const PRODUCTION_CONFIG: ApiConfig = {
 const STAGING_CONFIG: ApiConfig = {
   ...DEFAULT_CONFIG,
   baseUrl: getEnvVar('VITE_API_BASE_URL', 'https://comp2140a2.uqcloud.net/api'),
-  jwtToken: getEnvVar('VITE_JWT_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic3R1ZGVudCIsInVzZXJuYW1lIjoiczQ4MzEyMjcifQ.YEX2eDDydA3u65FSVQYmtDFR5GgsEDwksjgXFXsrLio'),
+  jwtToken: getEnvVar('VITE_JWT_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJhc3J1c2VyMiIsImVtYWlsIjoiYXNyMkBleGFtcGxlLmNvbSIsInJvbGUiOiJSRUNSVUlURVIiLCJpYXQiOjE3NTg2OTczNjYsImV4cCI6MTc1ODc4Mzc2Nn0.h6kKjMTH-5u9EDiEhvdnJQrSIyjHoZYduYi4fuPG2u0'),
   username: getEnvVar('VITE_USERNAME', 's4831227'),
 };
 

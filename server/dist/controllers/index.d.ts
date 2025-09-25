@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CRUDController } from './base';
 import { JobService, InterviewService, QuestionService, ApplicantService, ApplicantAnswerService } from '../services/database';
+import { WhisperService } from '../services/whisper';
 export declare class JobController extends CRUDController<any> {
     private jobService;
     constructor(jobService: JobService);
@@ -23,18 +24,20 @@ export declare class InterviewController extends CRUDController<any> {
 export declare class QuestionController extends CRUDController<any> {
     private questionService;
     constructor(questionService: QuestionService);
-    protected validateAndTransformData(data: any): any;
+    protected validateAndTransformData(data: any, req?: any): any;
     getByInterviewId(req: Request, res: Response): Promise<void>;
     getByDifficulty(req: Request, res: Response): Promise<void>;
 }
 export declare class ApplicantController extends CRUDController<any> {
     private applicantService;
     constructor(applicantService: ApplicantService);
-    protected validateAndTransformData(data: any): any;
+    protected validateAndTransformData(data: any, req?: any): any;
+    getAll(req: Request, res: Response): Promise<void>;
     getByInterviewId(req: Request, res: Response): Promise<void>;
     getByStatus(req: Request, res: Response): Promise<void>;
     getWithAnswers(req: Request, res: Response): Promise<void>;
-    updateStatus(req: Request, res: Response): Promise<void>;
+    bindToInterview(req: Request, res: Response): Promise<void>;
+    unbindFromInterview(req: Request, res: Response): Promise<void>;
 }
 export declare class ApplicantAnswerController extends CRUDController<any> {
     private applicantAnswerService;
@@ -44,5 +47,10 @@ export declare class ApplicantAnswerController extends CRUDController<any> {
     getByQuestionId(req: Request, res: Response): Promise<void>;
     getByInterviewId(req: Request, res: Response): Promise<void>;
     getWithDetails(req: Request, res: Response): Promise<void>;
+}
+export declare class AudioController {
+    private whisperService;
+    constructor(whisperService: WhisperService);
+    transcribe(req: Request, res: Response): Promise<void>;
 }
 //# sourceMappingURL=index.d.ts.map
