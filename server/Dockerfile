@@ -27,8 +27,13 @@ COPY prisma ./prisma
 RUN npx prisma generate
 RUN npm run build
 
-# Remove dev dependencies after build
+# Remove dev dependencies after build (but keep prisma for migrations)
 RUN npm prune --production
+RUN npm install prisma --save
+
+# Copy and setup startup script (before switching to non-root user)
+COPY docker-startup.sh /app/docker-startup.sh
+RUN chmod +x /app/docker-startup.sh
 
 # Create non-root user for security (Debian syntax)
 RUN groupadd --gid 1001 nodejs
@@ -45,5 +50,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application with full database setup
+CMD ["/app/docker-startup.sh"]
