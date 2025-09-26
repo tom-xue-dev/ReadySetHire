@@ -134,7 +134,7 @@ export default function Interviews() {
         render: (row) => (
           <button
             className="text-left text-zinc-900 font-medium hover:underline"
-            onClick={() => navigate(`/interviews/${row.id}`)}
+            onClick={() => navigate(`/interviews/${row.id}/questions`)}
           >
             {row.title}
           </button>
@@ -193,7 +193,7 @@ export default function Interviews() {
         render: (row) => (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate(`/interviews/${row.id}`)}
+              onClick={() => navigate(`/interviews/${row.id}/questions`)}
               aria-label="View"
               className="px-2 py-1.5 rounded-lg border hover:bg-zinc-50"
             >

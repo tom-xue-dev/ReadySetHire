@@ -43,7 +43,7 @@ export default function InterviewThanks() {
         <div className="it-actions">
           <button className="it-button" onClick={() => navigate('/')}>Back to Home</button>
           {interviewId && (
-            <button className="it-button ghost" onClick={() => navigate(`/interviews/${interviewId}`)}>View Interview</button>
+            <button className="it-button ghost" onClick={() => navigate(`/interviews/${interviewId}/questions`)}>View Interview</button>
           )}
         </div>
       </div>

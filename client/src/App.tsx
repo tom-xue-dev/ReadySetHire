@@ -16,7 +16,6 @@ import Applicant from "./pages/Applicants.tsx";
 import ApplicantPage from "./pages/ApplicantPage.tsx";
 import AudioRecorder from "./pages/AudioRecorder.tsx";
 import Questions from "./pages/Questions.tsx";
-import InterviewDetail from "./pages/InterviewDetail.tsx";
 import ResumeAssessment from "./pages/ResumeAssessment.tsx";
 import InterviewWelcome from "./pages/InterviewWelcome.tsx";
 import InterviewRun from "./pages/InterviewRun.tsx";
@@ -54,10 +53,7 @@ function AppContent() {
                   <Route path="/jobs" element={<Jobs />} />
                   <Route path="/interviews" element={<Interviews />} />
                   <Route path="/interviews/:interviewId/applicants" element={<Applicant />} />
-                  <Route path="/interviews/:id" element={<InterviewDetail />}>
-                  <Route index element={<Navigate to="questions" replace />} />
-                  <Route path="questions" element={<Questions />} />
-                  </Route>
+                  <Route path="/interviews/:interviewId/questions" element={<Questions />} />
                   
                   {/* Interview flow routes - may need connection but less critical */}
                   <Route path="/interview-welcome/:interviewId/:applicantId" element={<InterviewWelcome />} />
