@@ -174,6 +174,11 @@ class ApplicantService extends BaseService {
     }
     async findByInterviewId(interviewId) {
         return this.prisma[this.model].findMany({
+            where: {
+                applicantInterviews: {
+                    some: { interviewId }
+                }
+            },
             include: {
                 applicantInterviews: {
                     where: { interviewId },
@@ -256,6 +261,12 @@ class ApplicantService extends BaseService {
             }
         });
     }
+    async updateInterviewStatus(applicantId, interviewId, status) {
+        return this.prisma.applicantInterview.updateMany({
+            where: { applicantId, interviewId },
+            data: { interviewStatus: status }
+        });
+    }
 }
 exports.ApplicantService = ApplicantService;
 // ApplicantAnswer service with additional methods
@@ -271,6 +282,9 @@ class ApplicantAnswerService extends BaseService {
     }
     async findByInterviewId(interviewId) {
         return this.findMany({ interviewId });
+    }
+    async findByInterviewAndApplicant(interviewId, applicantId) {
+        return this.findMany({ interviewId, applicantId });
     }
     async findWithDetails(answerId) {
         return this.findUnique({ id: answerId }, {

@@ -63,12 +63,14 @@ export declare class ApplicantService extends BaseService<any> {
     getAllWithInterviews(): Promise<any>;
     bindToInterview(applicantId: number, interviewId: number, status?: string): Promise<any>;
     unbindFromInterview(applicantId: number, interviewId: number): Promise<any>;
+    updateInterviewStatus(applicantId: number, interviewId: number, status: string): Promise<any>;
 }
 export declare class ApplicantAnswerService extends BaseService<any> {
     constructor(prisma: PrismaClient);
     findByApplicantId(applicantId: number): Promise<any[]>;
     findByQuestionId(questionId: number): Promise<any[]>;
     findByInterviewId(interviewId: number): Promise<any[]>;
+    findByInterviewAndApplicant(interviewId: number, applicantId: number): Promise<any[]>;
     findWithDetails(answerId: number): Promise<any>;
 }
 export declare const userService: UserService;

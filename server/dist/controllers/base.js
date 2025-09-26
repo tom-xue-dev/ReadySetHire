@@ -55,7 +55,7 @@ class CRUDController {
     // POST /resource
     async create(req, res) {
         try {
-            const data = this.validateAndTransformData(req.body);
+            const data = this.validateAndTransformData(req.body, req);
             const item = await this.service.create(data);
             res.status(201).json(item);
         }
@@ -72,7 +72,7 @@ class CRUDController {
                 res.status(400).json({ error: 'Invalid ID format' });
                 return;
             }
-            const data = this.validateAndTransformData(req.body);
+            const data = this.validateAndTransformData(req.body, req);
             const item = await this.service.update(id, data);
             res.json(item);
         }
@@ -159,7 +159,7 @@ class CRUDController {
         return value;
     }
     // Override this method in subclasses for custom validation
-    validateAndTransformData(data) {
+    validateAndTransformData(data, req) {
         return data;
     }
 }

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CRUDController } from './base';
 import { JobService, InterviewService, QuestionService, ApplicantService, ApplicantAnswerService } from '../services/database';
 import { WhisperService } from '../services/whisper';
+import { LLMService } from '../services/llm';
 export declare class JobController extends CRUDController<any> {
     private jobService;
     constructor(jobService: JobService);
@@ -23,10 +24,15 @@ export declare class InterviewController extends CRUDController<any> {
 }
 export declare class QuestionController extends CRUDController<any> {
     private questionService;
-    constructor(questionService: QuestionService);
+    private llmService?;
+    constructor(questionService: QuestionService, llmService?: LLMService | undefined);
     protected validateAndTransformData(data: any, req?: any): any;
     getByInterviewId(req: Request, res: Response): Promise<void>;
     getByDifficulty(req: Request, res: Response): Promise<void>;
+    /**
+     * Generate questions using LLM based on job description
+     */
+    generateQuestions(req: Request, res: Response): Promise<void>;
 }
 export declare class ApplicantController extends CRUDController<any> {
     private applicantService;
@@ -38,14 +44,16 @@ export declare class ApplicantController extends CRUDController<any> {
     getWithAnswers(req: Request, res: Response): Promise<void>;
     bindToInterview(req: Request, res: Response): Promise<void>;
     unbindFromInterview(req: Request, res: Response): Promise<void>;
+    updateInterviewStatus(req: Request, res: Response): Promise<void>;
 }
 export declare class ApplicantAnswerController extends CRUDController<any> {
     private applicantAnswerService;
     constructor(applicantAnswerService: ApplicantAnswerService);
-    protected validateAndTransformData(data: any): any;
+    protected validateAndTransformData(data: any, req?: any): any;
     getByApplicantId(req: Request, res: Response): Promise<void>;
     getByQuestionId(req: Request, res: Response): Promise<void>;
     getByInterviewId(req: Request, res: Response): Promise<void>;
+    getByInterviewAndApplicant(req: Request, res: Response): Promise<void>;
     getWithDetails(req: Request, res: Response): Promise<void>;
 }
 export declare class AudioController {

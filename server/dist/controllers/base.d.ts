@@ -11,7 +11,7 @@ export declare class CRUDController<T> {
     delete(req: Request, res: Response): Promise<void>;
     private buildWhereClause;
     private parseValue;
-    protected validateAndTransformData(data: any): any;
+    protected validateAndTransformData(data: any, req?: any): any;
 }
 export declare class ValidationUtils {
     static validateRequired(data: any, requiredFields: string[]): void;

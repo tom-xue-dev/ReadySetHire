@@ -1,5 +1,13 @@
-# Use Node.js 18 Alpine for smaller image size
-FROM node:18-alpine
+# Use Node.js 18 with Debian base for better compatibility with native modules
+FROM node:18-slim
+
+# Install system dependencies needed for ONNX Runtime and other native modules
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -22,9 +30,9 @@ RUN npm run build
 # Remove dev dependencies after build
 RUN npm prune --production
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+# Create non-root user for security (Debian syntax)
+RUN groupadd --gid 1001 nodejs
+RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nodejs
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app
