@@ -79,5 +79,5 @@ export default function Starfield({ density = 0.0015, speed = 0.02 }: { density?
     };
   }, [density, speed]);
 
-  return <canvas className="home-starfield" ref={canvasRef} />;
+  return <canvas className="fixed inset-0 w-full h-full block z-0 pointer-events-none" ref={canvasRef} />;
 }

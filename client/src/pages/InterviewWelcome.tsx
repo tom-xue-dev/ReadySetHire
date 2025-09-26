@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "./InterviewWelcome.css";
 // @ts-ignore JS helper
 import { getInterview, getApplicantsByInterview } from "../api/helper.js";
 
@@ -49,25 +48,28 @@ export default function InterviewWelcome() {
   }, [interviewId, applicantId]);
 
   return (
-    <section className="iw-root">
-      <div className="iw-card">
-        <h1 className="iw-title">Welcome to Your Interview</h1>
-        <p className="iw-subtitle">Please review your details before starting.</p>
+    <section className="min-h-[40vh] grid place-items-center p-4">
+      <div className="w-full max-w-2xl bg-white border border-blue-200 rounded-xl shadow-lg shadow-blue-800/15 p-8">
+        <h1 className="text-3xl font-bold text-blue-700 text-center mb-2">Welcome to Your Interview</h1>
+        <p className="text-center text-blue-800/80 mb-5">Please review your details before starting.</p>
 
-        {error && <div className="iw-error">{error}</div>}
+        {error && <div className="mt-3 p-2 text-center text-red-700 bg-red-50 border border-red-200 rounded-lg">{error}</div>}
         {loading ? (
-          <div className="iw-spinner" />
+          <div className="w-8 h-8 border-3 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto mt-6" />
         ) : (
-          <div className="iw-details">
-            <div className="iw-label">Name</div>
-            <div className="iw-value">{applicant ? `${applicant.firstname ?? ''} ${applicant.surname ?? ''}`.trim() : '-'}</div>
-            <div className="iw-label">Email</div>
-            <div className="iw-value">{applicant?.emailAddress ?? '-'}</div>
-            <div className="iw-label">Interview</div>
-            <div className="iw-value">{interview?.title ?? `Interview #${interviewId}`}</div>
+          <div className="mt-5 grid justify-items-center">
+            <div className="text-xs uppercase tracking-wider text-blue-500">Name</div>
+            <div className="mt-1 mb-2 text-lg font-semibold text-slate-900">{applicant ? `${applicant.firstname ?? ''} ${applicant.surname ?? ''}`.trim() : '-'}</div>
+            <div className="text-xs uppercase tracking-wider text-blue-500">Email</div>
+            <div className="mt-1 mb-2 text-lg font-semibold text-slate-900">{applicant?.emailAddress ?? '-'}</div>
+            <div className="text-xs uppercase tracking-wider text-blue-500">Interview</div>
+            <div className="mt-1 mb-2 text-lg font-semibold text-slate-900">{interview?.title ?? `Interview #${interviewId}`}</div>
 
-            <div className="iw-actions">
-              <button className="iw-button" onClick={() => navigate(`/interview-run/${interviewId}/${applicantId}`)}>
+            <div className="flex justify-center mt-6">
+              <button 
+                className="inline-flex items-center justify-center px-6 py-3 font-semibold text-white bg-blue-600 border border-blue-600 rounded-lg cursor-pointer shadow-lg shadow-blue-600/35 transition-all duration-150 hover:bg-blue-700 hover:border-blue-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-700/35 active:translate-y-0 active:shadow-lg active:shadow-blue-700/35"
+                onClick={() => navigate(`/interview-run/${interviewId}/${applicantId}`)}
+              >
                 Start Interview
               </button>
             </div>

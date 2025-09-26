@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 // @ts-ignore JS helper
 import { getQuestions, getInterview, getAnswersByApplicant, createApplicantAnswer, updateApplicantAnswer } from "../api/helper.js";
-import "./InterviewRun.css";
 import EnhancedAudioCapture from "../components/EnhancedAudioCapture";
 import { transcribeWavBlob, createFallbackTranscription, isASRAvailable, resetASRAvailability } from "../api/asr";
 import { useAuth } from "../contexts/AuthContext";
@@ -170,90 +169,84 @@ export default function InterviewRun() {
   }
 
   return (
-    <section className="ir-root">
-      <div className="ir-card">
-        <div className="ir-header">
-          <div className="ir-title">{title}</div>
-          <div className="ir-sub">Applicant ID: {applicantId || '-'}</div>
+    <section className="min-h-screen grid place-items-center p-4 bg-gradient-to-b from-indigo-50 to-white">
+      <div className="w-full max-w-4xl bg-white border border-blue-100 rounded-2xl shadow-xl shadow-blue-700/12 p-6">
+        <div className="text-center mb-4">
+          <div className="text-xl font-bold text-blue-700">{title}</div>
+          <div className="text-sm text-blue-600 opacity-85">Applicant ID: {applicantId || '-'}</div>
         </div>
 
-        {error && <div className="ir-error">{error}</div>}
+        {error && <div className="mt-2 mb-2 text-center text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">{error}</div>}
         {loading ? (
-          <div className="ir-spinner" />
+          <div className="w-9 h-9 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto my-6" />
         ) : questions.length === 0 ? (
-          <div className="ir-empty">No questions for this interview.</div>
+          <div className="text-center text-slate-600 py-4">No questions for this interview.</div>
         ) : (
           <>
-            <div className="ir-progress">
-              <div className="ir-bar" style={{ width: `${progress * 100}%` }} />
+            <div className="h-2 bg-indigo-50 rounded-full overflow-hidden my-4">
+              <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300" style={{ width: `${progress * 100}%` }} />
             </div>
-            <div className="ir-qindex">Question {index + 1} of {questions.length}</div>
+            <div className="text-center text-sm text-blue-800 mb-2">Question {index + 1} of {questions.length}</div>
 
-            <div className="ir-question">
+            <div className="text-lg leading-relaxed text-slate-900 bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
               {current?.question}
             </div>
 
-            <div style={{ display: 'grid', gap: 10 }}>
+            <div className="grid gap-3">
               <EnhancedAudioCapture 
                 onStop={handleAudioStop} 
                 disabled={false}
                 allowMultiple={true}
               />
               <textarea
-                className="ir-textarea"
+                className="w-full min-h-[140px] p-3 rounded-lg border border-indigo-200 outline-none resize-y text-base focus:shadow-lg focus:shadow-blue-600/20 focus:border-blue-600"
                 placeholder="Type your answer here or use voice recording..."
                 value={current ? (answers[current.id] ?? '') : ''}
                 onChange={(e) => handleChange(e.target.value)}
               />
-              {transcribing && <div className="ir-saving">Transcribing...</div>}
+              {transcribing && <div className="text-center text-blue-600 font-medium">Transcribing...</div>}
               {asrError && (
-                <div style={{ 
-                  color: '#dc2626', 
-                  fontSize: '14px', 
-                  padding: '8px', 
-                  backgroundColor: '#fef2f2', 
-                  border: '1px solid #fecaca', 
-                  borderRadius: '6px',
-                  marginTop: '8px'
-                }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                <div className="text-red-700 text-sm p-2 bg-red-50 border border-red-200 rounded-lg mt-2">
+                  <div className="font-bold mb-1">
                     ⚠️ Speech Recognition Error
                   </div>
-                  <div style={{ marginBottom: '8px' }}>
+                  <div className="mb-2">
                     {asrError}
                   </div>
                   <button 
                     onClick={handleRetryASR}
-                    style={{
-                      padding: '4px 8px',
-                      fontSize: '12px',
-                      backgroundColor: '#dc2626',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
+                    className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white border-none rounded cursor-pointer"
                   >
                     🔄 Retry Speech Recognition
                   </button>
                 </div>
               )}
               {recordingCount[current?.id ?? -1] > 0 && (
-                <div style={{ color: '#065f46', fontSize: '14px' }}>
+                <div className="text-emerald-800 text-sm">
                   Recordings: {recordingCount[current?.id ?? -1]} (can record more)
                 </div>
               )}
             </div>
 
-            <div className="ir-actions">
+            <div className="flex justify-between mt-4">
               {index < questions.length - 1 ? (
-                <button className="ir-btn primary" onClick={handleNext}>Next</button>
+                <button 
+                  className="px-5 py-3 rounded-lg border border-blue-600 bg-blue-600 text-white font-semibold cursor-pointer shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:border-blue-700"
+                  onClick={handleNext}
+                >
+                  Next
+                </button>
               ) : (
-                <button className="ir-btn primary" onClick={handleFinish}>Finish</button>
+                <button 
+                  className="px-5 py-3 rounded-lg border border-blue-600 bg-blue-600 text-white font-semibold cursor-pointer shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:border-blue-700"
+                  onClick={handleFinish}
+                >
+                  Finish
+                </button>
               )}
             </div>
-            {saving && <div className="ir-saving">Saving...</div>}
-            {saveErr && <div className="ir-error" style={{ marginTop: 8 }}>{saveErr}</div>}
+            {saving && <div className="text-center text-blue-600 font-medium mt-2">Saving...</div>}
+            {saveErr && <div className="mt-2 text-center text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">{saveErr}</div>}
           </>
         )}
       </div>
