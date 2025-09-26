@@ -18,8 +18,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { path: '/interviews', label: t('navigation.interviews'), icon: '🎯' },
     { path: '/jobs', label: t('navigation.jobs'), icon: '💼' },
     { path: '/applicants', label: t('navigation.applicants'), icon: '👥' },
-    { path: '/questions', label: t('navigation.questions'), icon: '❓' },
-    { path: '/resume-management', label: t('navigation.resumeManagement'), icon: '📄' },
+    // { path: '/questions', label: t('navigation.questions'), icon: '❓' },
+    // { path: '/resume-management', label: t('navigation.resumeManagement'), icon: '📄' },
   ];
 
   const isActive = (path: string) => {
