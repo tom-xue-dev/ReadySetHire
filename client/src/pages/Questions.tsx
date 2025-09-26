@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon, SparklesIcon } from "@heroicons/react/24/solid";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Modal from "../components/Modal";
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
 // @ts-ignore JS module
-import { getQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/helper.js";
+import { getQuestions, createQuestion, updateQuestion, deleteQuestion, generateQuestions } from "../api/helper.js";
 
 
 type Question = {
@@ -48,16 +48,20 @@ function Toolbar({
   difficulty,
   setDifficulty,
   onAdd,
+  onGenerate,
   onBulkDisable,
   anySelected,
+  isGenerating,
 }: {
   search: string;
   setSearch: (v: string) => void;
   difficulty: string;
   setDifficulty: (v: string) => void;
   onAdd: () => void;
+  onGenerate: () => void;
   onBulkDisable: () => void;
   anySelected: boolean;
+  isGenerating: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -78,6 +82,15 @@ function Toolbar({
       <div className="flex items-center gap-2">
         <Button variant="outline" className="flex items-center gap-1" onClick={onBulkDisable} disabled={!anySelected}>
           Disable ({anySelected ? 'selected' : '0'})
+        </Button>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-1" 
+          onClick={onGenerate}
+          disabled={isGenerating}
+        >
+          <SparklesIcon className="h-4 w-4" />
+          {isGenerating ? 'Generating...' : 'Generate Questions'}
         </Button>
         <Button className="flex items-center gap-1" onClick={onAdd}>
           <PlusIcon className="h-4 w-4" />New Question
@@ -103,6 +116,7 @@ function Questions() {
   const [draftQuestion, setDraftQuestion] = useState<Partial<QuestionFormData>>({ difficulty: "EASY" });
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   async function load() {
     if (!interviewId) return;
@@ -230,6 +244,43 @@ function Questions() {
     setDraftQuestion({ difficulty: "EASY" });
   };
 
+  const handleGenerateQuestions = async () => {
+    if (isGenerating) return;
+    
+    const count = prompt('How many questions would you like to generate?', '5');
+    if (!count || isNaN(Number(count))) {
+      alert('Please enter a valid number');
+      return;
+    }
+    
+    const numQuestions = Math.min(Math.max(1, Number(count)), 10); // Limit to 1-10
+    
+    if (!confirm(`Generate ${numQuestions} questions using AI based on the job description?`)) {
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      console.log(`🤖 Generating ${numQuestions} questions for interview ${interviewId}`);
+      
+      const response = await generateQuestions(interviewId, numQuestions);
+      console.log('✅ Generation response:', response);
+      
+      if (response.success) {
+        alert(`Successfully generated and saved ${response.data.saved} questions!`);
+        await load(); // Reload the questions list
+      } else {
+        alert(`Generation failed: ${response.error || 'Unknown error'}`);
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Question generation failed:', error);
+      alert(`Failed to generate questions: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   async function handleCreate(values: QuestionFormData) {
     try {
       await createQuestion(values);
@@ -279,8 +330,10 @@ function Questions() {
               difficulty={difficulty}
               setDifficulty={setDifficulty}
               onAdd={() => setShowQuestionDialog(true)}
+              onGenerate={handleGenerateQuestions}
               onBulkDisable={bulkDisable}
               anySelected={selected.length > 0}
+              isGenerating={isGenerating}
             />
 
             {error && (

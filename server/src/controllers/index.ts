@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CRUDController, ValidationUtils, ErrorHandler } from './base';
 import { JobService, InterviewService, QuestionService, ApplicantService, ApplicantAnswerService } from '../services/database';
 import { WhisperService } from '../services/whisper';
+import { LLMService } from '../services/llm';
 
 // Job Controller
 export class JobController extends CRUDController<any> {
@@ -206,7 +207,10 @@ export class InterviewController extends CRUDController<any> {
 
 // Question Controller
 export class QuestionController extends CRUDController<any> {
-  constructor(private questionService: QuestionService) {
+  constructor(
+    private questionService: QuestionService,
+    private llmService?: LLMService
+  ) {
     super(questionService);
   }
 
@@ -278,6 +282,99 @@ export class QuestionController extends CRUDController<any> {
     } catch (error) {
       console.error('Error fetching questions by difficulty:', error);
       res.status(500).json({ error: 'Failed to fetch questions' });
+    }
+  }
+
+  /**
+   * Generate questions using LLM based on job description
+   */
+  async generateQuestions(req: Request, res: Response): Promise<void> {
+    try {
+      const interviewId = parseInt(req.params.interviewId);
+      const { count = 5 } = req.body;
+      const userId = (req as any).user?.id;
+
+      if (isNaN(interviewId)) {
+        res.status(400).json({ error: 'Invalid interview ID' });
+        return;
+      }
+
+      if (!userId) {
+        res.status(401).json({ error: 'User not authenticated' });
+        return;
+      }
+
+      if (!this.llmService) {
+        res.status(503).json({ error: 'LLM service not available' });
+        return;
+      }
+
+      console.log(`🤖 Generating questions for interview ${interviewId}`);
+
+      // Get interview with job details
+      const interview = await this.questionService.prisma.interview.findUnique({
+        where: { id: interviewId },
+        include: {
+          job: true
+        }
+      });
+
+      if (!interview) {
+        res.status(404).json({ error: 'Interview not found' });
+        return;
+      }
+
+      const jobDescription = interview.job?.description || interview.description || '';
+      const jobTitle = interview.job?.title || interview.jobRole || 'Unknown Position';
+
+      if (!jobDescription.trim()) {
+        res.status(400).json({ 
+          error: 'No job description available. Please add a job description to generate relevant questions.' 
+        });
+        return;
+      }
+
+      console.log(`📋 Job: ${jobTitle}`);
+      console.log(`📝 Description length: ${jobDescription.length} characters`);
+
+      // Generate questions using LLM
+      const generatedQuestions = await this.llmService.generateQuestions(
+        jobDescription,
+        jobTitle,
+        count
+      );
+
+      // Save generated questions to database
+      const savedQuestions = [];
+      for (const gq of generatedQuestions) {
+        try {
+          const question = await this.questionService.create({
+            interviewId: interviewId,
+            question: gq.question,
+            difficulty: gq.difficulty,
+            userId: userId
+          });
+          savedQuestions.push(question);
+          console.log(`✅ Saved question: ${gq.question.substring(0, 50)}...`);
+        } catch (error) {
+          console.error(`❌ Failed to save question: ${gq.question}`, error);
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          generated: generatedQuestions.length,
+          saved: savedQuestions.length,
+          questions: savedQuestions
+        }
+      });
+
+    } catch (error: any) {
+      console.error('❌ Error generating questions:', error);
+      res.status(500).json({ 
+        error: `Question generation failed: ${error.message}` 
+      });
     }
   }
 }

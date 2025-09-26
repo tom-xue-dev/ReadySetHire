@@ -285,6 +285,16 @@ export async function deleteQuestion(id) {
     return apiRequest(`/question?id=eq.${id}`, 'DELETE');
 }
 
+/**
+ * Generate questions using LLM based on job description
+ * @param {number} interviewId - The interview ID
+ * @param {number} count - Number of questions to generate (default: 5)
+ * @returns {Promise<object>} - The generated questions response
+ */
+export async function generateQuestions(interviewId, count = 5) {
+    return apiRequest(`/question/generate/${interviewId}`, 'POST', { count });
+}
+
 // Applicants APIs - Updated for new API format
 export async function getAllApplicants() {
     const response = await apiRequest(`/applicant`);

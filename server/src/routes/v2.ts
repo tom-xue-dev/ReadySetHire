@@ -4,13 +4,14 @@ import { authenticateToken, optionalAuth, requireRole, login, register, getProfi
 import { JobController, InterviewController, QuestionController, ApplicantController, ApplicantAnswerController, AudioController } from '../controllers';
 import { jobService, interviewService, questionService, applicantService, applicantAnswerService } from '../services/database';
 import { whisperService } from '../services/whisper';
+import { llmService } from '../services/llm';
 export function createRoutes() {
   const router = Router();
 
   // Initialize controllers
   const jobController = new JobController(jobService);
   const interviewController = new InterviewController(interviewService);
-  const questionController = new QuestionController(questionService);
+  const questionController = new QuestionController(questionService, llmService);
   const applicantController = new ApplicantController(applicantService);
   const applicantAnswerController = new ApplicantAnswerController(applicantAnswerService);
   const audioController = new AudioController(whisperService);
@@ -41,6 +42,7 @@ export function createRoutes() {
     }
   });
   router.get('/question/interview/:interviewId', optionalAuth, questionController.getByInterviewId.bind(questionController));
+  router.post('/question/generate/:interviewId', authenticateToken, questionController.generateQuestions.bind(questionController));
   router.get('/question/difficulty/:difficulty', optionalAuth, questionController.getByDifficulty.bind(questionController));
   router.get('/question/:id', optionalAuth, questionController.getById.bind(questionController));
   router.post('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.create.bind(questionController));
