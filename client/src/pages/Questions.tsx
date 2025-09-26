@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon, FunnelIcon, ArrowUpTrayIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon } from "@heroicons/react/24/solid";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Modal from "../components/Modal";
@@ -8,11 +8,6 @@ import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/
 // @ts-ignore JS module
 import { getQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/helper.js";
 
-type FormQuestion = {
-  question: string;
-  difficulty: "EASY" | "INTERMEDIATE" | "ADVANCED";
-  interview_id?: number;
-};
 
 type Question = {
   id: number;
@@ -35,14 +30,12 @@ function Breadcrumb({ interviewId, onBack }: { interviewId: number; onBack: () =
       <Button variant="ghost" onClick={onBack} className="flex items-center gap-1 p-1">
         <ArrowLeftIcon className="h-4 w-4" />
       </Button>
-      <Link to="/interviews/${interviewId}/applicants" className="hover:underline cursor-pointer">
-      <span className="hover:underline cursor-pointer">Applicants</span>
+      <Link to={`/interviews/${interviewId}/applicants`} className="hover:underline cursor-pointer">
+        <span className="hover:underline cursor-pointer">Applicants</span>
       </Link>
-     
       <span>/</span>
-
-      <Link to="/interviews/${interviewId}/questions" className="hover:underline cursor-pointer">
-      <span className="hover:underline cursor-pointer">Questions</span>
+      <Link to={`/interviews/${interviewId}/questions`} className="hover:underline cursor-pointer">
+        <span className="hover:underline cursor-pointer">Questions</span>
       </Link>
 
     </div>

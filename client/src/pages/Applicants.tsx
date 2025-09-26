@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useLocation ,Link} from "react-router-dom";
+import { useNavigate, useParams, useLocation, Link } from "react-router-dom";
 import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon, FunnelIcon, ArrowDownTrayIcon, UserPlusIcon, PlayIcon, EyeIcon } from "@heroicons/react/24/solid";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -42,21 +42,18 @@ type FormApplicant = {
 // Utility components
 function Breadcrumb({ interviewId, onBack }: { interviewId: number; onBack: () => void }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-      <Button variant="ghost" onClick={onBack} className="flex items-center gap-1 p-1">
-        <ArrowLeftIcon className="h-4 w-4" />
-      </Button>
-      <Link to="/interviews/${interviewId}/applicants" className="hover:underline cursor-pointer">
-      <span className="hover:underline cursor-pointer">Applicants</span>
-      </Link>
-     
-      <span>/</span>
-
-      <Link to="/interviews/${interviewId}/questions" className="hover:underline cursor-pointer">
-      <span className="hover:underline cursor-pointer">Questions</span>
-      </Link>
-
-    </div>
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+        <Button variant="ghost" onClick={onBack} className="flex items-center gap-1 p-1">
+          <ArrowLeftIcon className="h-4 w-4" />
+        </Button>
+        <Link to={`/interviews/${interviewId}/applicants`} className="hover:underline cursor-pointer">
+          <span className="hover:underline cursor-pointer">Applicants</span>
+        </Link>
+        <span>/</span>
+        <Link to={`/interviews/${interviewId}/questions`} className="hover:underline cursor-pointer">
+          <span className="hover:underline cursor-pointer">Questions</span>
+        </Link>
+      </div>
   );
 }
 
@@ -67,7 +64,6 @@ function Toolbar({
   setStatusFilter,
   onAdd,
   onAddExisting,
-  onExport,
 }: {
   search: string;
   setSearch: (v: string) => void;
@@ -75,7 +71,6 @@ function Toolbar({
   setStatusFilter: (v: string) => void;
   onAdd: () => void;
   onAddExisting: () => void;
-  onExport: () => void;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -97,14 +92,8 @@ function Toolbar({
           <option value="COMPLETED">Completed</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
-        <Button variant="outline" className="flex items-center gap-1" onClick={() => alert('Filters not implemented')}>
-          <FunnelIcon className="h-4 w-4" />Filters
-        </Button>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" className="flex items-center gap-1" onClick={onExport}>
-          <ArrowDownTrayIcon className="h-4 w-4" />Export
-        </Button>
         <Button variant="outline" className="flex items-center gap-1" onClick={onAddExisting}>
           <UserPlusIcon className="h-4 w-4" />Add Existing
         </Button>
@@ -356,7 +345,6 @@ export default function Applicant() {
               setStatusFilter={setStatusFilter}
               onAdd={() => setShowApplicantDialog(true)}
               onAddExisting={openExistingModal}
-              onExport={() => alert("Export not implemented in demo")}
             />
 
             {error && (
