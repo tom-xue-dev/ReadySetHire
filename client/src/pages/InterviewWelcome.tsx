@@ -9,7 +9,7 @@ type Applicant = {
   id: number;
   firstname?: string;
   surname?: string;
-  email_address?: string;
+  emailAddress?: string;
   phone_number?: string;
 };
 
@@ -62,7 +62,7 @@ export default function InterviewWelcome() {
             <div className="iw-label">Name</div>
             <div className="iw-value">{applicant ? `${applicant.firstname ?? ''} ${applicant.surname ?? ''}`.trim() : '-'}</div>
             <div className="iw-label">Email</div>
-            <div className="iw-value">{applicant?.email_address ?? '-'}</div>
+            <div className="iw-value">{applicant?.emailAddress ?? '-'}</div>
             <div className="iw-label">Interview</div>
             <div className="iw-value">{interview?.title ?? `Interview #${interviewId}`}</div>
 

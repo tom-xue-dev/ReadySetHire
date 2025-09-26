@@ -109,8 +109,38 @@ function Questions() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getQuestions(interviewId);
-      setQuestions(Array.isArray(data) ? (data as Question[]) : []);
+      const response = await getQuestions(interviewId);
+      console.log('🔍 Questions API response:', response);
+      
+      // Extract questions data - handle both wrapped and unwrapped responses
+      let questionsList = response;
+      if (response && typeof response === 'object' && 'data' in response) {
+        questionsList = response.data;
+      }
+      
+      console.log('📝 Extracted questions list:', questionsList);
+      
+      // Process questions with validation
+      const validQuestions: Question[] = (Array.isArray(questionsList) ? questionsList : [])
+        .map((q: any) => {
+          const questionId = Number(q.id);
+          if (isNaN(questionId) || questionId <= 0) {
+            console.warn('⚠️ Invalid question ID:', q.id, 'in question:', q);
+            return null;
+          }
+          const question: Question = {
+            id: questionId,
+            question: String(q.question ?? ''),
+            difficulty: q.difficulty as "EASY" | "INTERMEDIATE" | "ADVANCED",
+            username: q.username,
+            interview_id: q.interviewId || q.interview_id
+          };
+          return question;
+        })
+        .filter((q): q is Question => q !== null);
+        
+      console.log('✅ Valid questions:', validQuestions);
+      setQuestions(validQuestions);
     } catch (e: any) {
       setError(e?.message ?? "Load failed");
     } finally {
