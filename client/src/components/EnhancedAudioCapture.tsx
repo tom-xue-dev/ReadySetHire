@@ -147,19 +147,7 @@ export default function AudioCapture({ onStop, disabled, allowMultiple = true }:
     }
   }
 
-  function reset() {
-    // Reset for new recording session
-    setRecordingCount(0);
-    setErr(null);
-    setIsRecording(false);
-    setIsPaused(false);
-    if (mediaRecorderRef.current) {
-      try {
-        mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
-      } catch {}
-      mediaRecorderRef.current = null;
-    }
-  }
+  // Removed reset logic per requirement
 
   return (
     <div style={{ display: 'grid', gap: 8 }}>
@@ -196,15 +184,6 @@ export default function AudioCapture({ onStop, disabled, allowMultiple = true }:
           {isProcessing ? 'Processing...' : 'Stop & Transcribe'}
         </button>
         
-        {allowMultiple && recordingCount > 0 && (
-          <button 
-            onClick={reset} 
-            disabled={disabled || isRecording || isProcessing} 
-            style={btnSecondary}
-          >
-            Reset
-          </button>
-        )}
       </div>
       
       {err && <div style={{ color: '#b91c1c', fontSize: '14px' }}>{err}</div>}
