@@ -3,6 +3,7 @@ import { SimpleConnectionIndicator, SimpleConnectionGuard } from '../components/
 import JobForm from '../components/JobForm';
 import type { Job } from '../types';
 import Modal from '../components/Modal';
+import { Drawer } from '../components/ui/Cards.tsx';
 // @ts-ignore JS helper
 import { getJobs, createJob, updateJob, deleteJob } from '../api/helper.js';
 
@@ -15,6 +16,7 @@ export default function Jobs() {
   const [formError, setFormError] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT' | 'ARCHIVED' | 'CLOSED'>('ALL');
+  const [detailsJob, setDetailsJob] = useState<Job | null>(null);
 
   useEffect(() => {
     load();
@@ -73,23 +75,7 @@ export default function Jobs() {
     setFormError(null);
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PUBLISHED': return '#10b981';
-      case 'DRAFT': return '#f59e0b';
-      case 'ARCHIVED': return '#6b7280';
-      default: return '#6b7280';
-    }
-  };
-
-  const getStatusBg = (status: string) => {
-    switch (status) {
-      case 'PUBLISHED': return '#dcfce7';
-      case 'DRAFT': return '#fef3c7';
-      case 'ARCHIVED': return '#f3f4f6';
-      default: return '#f3f4f6';
-    }
-  };
+  // status color helpers not used in current UI
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
@@ -176,7 +162,7 @@ export default function Jobs() {
                   <div className="text-sm text-zinc-500 p-4">No jobs</div>
                 ) : (
                   filtered.map((job) => (
-                    <div key={job.id} className="border rounded-2xl p-4">
+                    <div key={job.id} className="border rounded-2xl p-4 cursor-pointer hover:shadow-sm" onClick={() => setDetailsJob(job)}>
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <h3 className="text-base font-semibold text-zinc-900">{job.title}</h3>
                         <span className="px-2 py-0.5 rounded-full text-xs border">{job.status as any}</span>
@@ -187,8 +173,8 @@ export default function Jobs() {
                         <p className="text-sm text-zinc-700 line-clamp-3 mb-3">{job.description}</p>
                       )}
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => handleEdit(job)} className="px-2 py-1.5 rounded-lg border hover:bg-zinc-50">Edit</button>
-                        <button onClick={() => handleDelete(job.id!)} className="px-2 py-1.5 rounded-lg border hover:bg-red-50 text-red-600 border-red-300">Delete</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleEdit(job); }} className="px-2 py-1.5 rounded-lg border hover:bg-zinc-50">Edit</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(job.id!); }} className="px-2 py-1.5 rounded-lg border hover:bg-red-50 text-red-600 border-red-300">Delete</button>
                       </div>
                     </div>
                   ))
@@ -213,6 +199,51 @@ export default function Jobs() {
             </div>
           </Modal>
         )}
+
+        <Drawer
+          open={!!detailsJob}
+          title={detailsJob?.title ?? ''}
+          onClose={() => setDetailsJob(null)}
+          footer={detailsJob ? (
+            <>
+              <button onClick={() => { setDetailsJob(null); handleEdit(detailsJob); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">Edit</button>
+              {detailsJob?.id && (
+                <button onClick={() => { const id = detailsJob.id!; setDetailsJob(null); handleDelete(id); }} className="rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+              )}
+            </>
+          ) : undefined}
+        >
+          {detailsJob && (
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600 flex flex-wrap items-center gap-3">
+                {detailsJob.location && <span>📍 {detailsJob.location}</span>}
+                {detailsJob.salary && <span>💰 {detailsJob.salary}</span>}
+                {detailsJob.status && <span className="ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs">{detailsJob.status as any}</span>}
+              </div>
+
+              {detailsJob.description && (
+                <section className="rounded-xl border p-4">
+                  <h3 className="font-medium mb-1">Job Description</h3>
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{detailsJob.description}</p>
+                </section>
+              )}
+
+              {detailsJob.requirements && (
+                <section className="rounded-xl border p-4">
+                  <h3 className="font-medium mb-1">Requirements</h3>
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{detailsJob.requirements}</p>
+                </section>
+              )}
+
+              {(detailsJob.company || detailsJob.department) && (
+                <section className="rounded-xl border p-4">
+                  <h3 className="font-medium mb-1">Company</h3>
+                  <div className="text-sm text-gray-800">{detailsJob.company ?? '—'} {detailsJob.department ? `· ${detailsJob.department}` : ''}</div>
+                </section>
+              )}
+            </div>
+          )}
+        </Drawer>
       </div>
     </SimpleConnectionGuard>
   );

@@ -16,6 +16,7 @@
     "@heroicons/react": "^2.2.0",
     "@huggingface/transformers": "^3.7.3",
     "daisyui": "^5.1.12",
+    "framer-motion": "^12.23.22",
     "node-fetch": "^3.3.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
