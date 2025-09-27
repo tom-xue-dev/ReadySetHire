@@ -168,11 +168,11 @@ describe('User Service Unit Tests', () => {
       (userService.update as jest.Mock).mockResolvedValue(updatedUser);
 
       // Act
-      const result = await userService.update({ id: userId }, updateData);
+      const result = await userService.update(userId, updateData);
 
       // Assert
       expect(userService.update).toHaveBeenCalledWith(
-        { id: userId },
+        userId,
         updateData
       );
       expect(result).toEqual(updatedUser);

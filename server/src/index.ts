@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import prisma from './services/database';
 import { createRoutes } from './routes';
+import { createDocsRouter } from './routes/docs';
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +39,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api', createRoutes());
+// Swagger docs
+app.use('/api', createDocsRouter());
 
 // Error handling middleware
 app.use(

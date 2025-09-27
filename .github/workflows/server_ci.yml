@@ -58,6 +58,11 @@ jobs:
       env:
         DATABASE_URL: postgresql://readysethire_user:readysethire_password@localhost:5432/readysethire_test?schema=public
 
+    - name: Seed database
+      run: npx tsx src/db/seed.ts
+      env:
+        DATABASE_URL: postgresql://readysethire_user:readysethire_password@localhost:5432/readysethire_test?schema=public
+
     - name: Run unit tests
       run: npm run test:unit
       env:
@@ -233,10 +238,12 @@ jobs:
     steps:
     - name: Notify on success
       if: ${{ needs.test.result == 'success' && needs.build.result == 'success' }}
+      working-directory: .
       run: |
         echo "✅ All checks passed! Ready for deployment."
 
     - name: Notify on failure
       if: ${{ needs.test.result == 'failure' || needs.build.result == 'failure' }}
+      working-directory: .
       run: |
         echo "❌ Build or tests failed. Please check the logs."

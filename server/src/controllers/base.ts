@@ -183,8 +183,8 @@ export class ValidationUtils {
   }
 
   static validatePhone(phone: string): boolean {
-    // More flexible phone validation - accepts numbers starting with 0
-    const phoneRegex = /^[\+]?[0-9][\d]{7,15}$/;
+    // Accept optional leading + and 8-16 digits total
+    const phoneRegex = /^\+?[0-9]\d{7,15}$/;
     return phoneRegex.test(phone.replace(/\s/g, ''));
   }
 

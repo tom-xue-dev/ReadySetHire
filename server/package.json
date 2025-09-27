@@ -50,6 +50,8 @@
     "multer": "^2.0.2",
     "openai": "^5.23.0",
     "openai-whisper": "^1.0.2",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.5.1",
     "pg": "^8.11.3"
   },
   "devDependencies": {

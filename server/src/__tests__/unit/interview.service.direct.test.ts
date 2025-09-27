@@ -228,13 +228,13 @@ describe('Interview Service Unit Tests', () => {
 
       // Act
       const result = await interviewService.update(
-        { id: interviewId },
+        interviewId,
         updateData
       );
 
       // Assert
       expect(interviewService.update).toHaveBeenCalledWith(
-        { id: interviewId },
+        interviewId,
         updateData
       );
       expect(result).toEqual(updatedInterview);
