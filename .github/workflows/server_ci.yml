@@ -2,9 +2,9 @@ name: serverci
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "CICD" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "CICD" ]
 
 jobs:
   build:
