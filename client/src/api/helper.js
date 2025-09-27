@@ -180,7 +180,7 @@ export async function apiRequest(endpoint, method = 'GET', body = null, timeout 
  * @returns {Promise<object>} - The created project object returned by the API.
  */
 export async function createInterview(interview) {
-    return apiRequest('/interview', 'POST', interview);
+    return apiRequest('/interviews', 'POST', interview);
 }
 
 /**
@@ -200,7 +200,7 @@ export async function getJobs() {
  * @returns {Promise<object>} - The job object matching the ID.
  */
 export async function getJob(id) {
-    return apiRequest(`/job?id=eq.${id}`);
+    return apiRequest(`/jobs/${id}`);
 }
 
 /**
@@ -210,7 +210,7 @@ export async function getJob(id) {
  * @returns {Promise<object>} - The created job object.
  */
 export async function createJob(jobData) {
-    return apiRequest('/job', 'POST', jobData);
+    return apiRequest('/jobs', 'POST', jobData);
 }
 
 /**
@@ -221,7 +221,7 @@ export async function createJob(jobData) {
  * @returns {Promise<object>} - The updated job object.
  */
 export async function updateJob(id, jobData) {
-    return apiRequest(`/job?id=eq.${id}`, 'PATCH', jobData);
+    return apiRequest(`/jobs/${id}`, 'PATCH', jobData);
 }
 
 /**
@@ -231,7 +231,7 @@ export async function updateJob(id, jobData) {
  * @returns {Promise<void>} - No return value.
  */
 export async function deleteJob(id) {
-    return apiRequest(`/job?id=eq.${id}`, 'DELETE');
+    return apiRequest(`/jobs/${id}`, 'DELETE');
 }
 
 /**
@@ -240,8 +240,7 @@ export async function deleteJob(id) {
  * @returns {Promise<Array>} - An array of interview objects.
  */
 export async function getInterviews() {
-    const response = await apiRequest('/interview');
-    // New API returns {data: [], pagination: {}} format
+    const response = await apiRequest('/interviews');
     return response.data || [];
 }
 
@@ -253,23 +252,22 @@ export async function getInterviews() {
  * @returns {Promise<object>} - The project object matching the ID.
  */
 export async function getInterview(id) {
-    return apiRequest(`/interview?id=eq.${id}`);
+    return apiRequest(`/interviews/${id}`);
 }
 
 // Update interview by id (PostgREST style)
 export async function updateInterview(id, data) {
-    return apiRequest(`/interview?id=eq.${id}`, 'PATCH', data);
+    return apiRequest(`/interviews/${id}`, 'PATCH', data);
 }
 
 // Delete interview by id
 export async function deleteInterview(id) {
-    return apiRequest(`/interview?id=eq.${id}`, 'DELETE');
+    return apiRequest(`/interviews/${id}`, 'DELETE');
 }
 
 // Question APIs - Updated for new API format
 export async function getQuestions(interviewId) {
     const response = await apiRequest(`/question/interview/${interviewId}`);
-    // New API returns {data: [], pagination: {}} format
     return response.data || [];
 }
 
@@ -278,11 +276,11 @@ export async function createQuestion(question) {
 }
 
 export async function updateQuestion(id, data) {
-    return apiRequest(`/question?id=eq.${id}`, 'PATCH', data);
+    return apiRequest(`/question/${id}`, 'PATCH', data);
 }
 
 export async function deleteQuestion(id) {
-    return apiRequest(`/question?id=eq.${id}`, 'DELETE');
+    return apiRequest(`/question/${id}`, 'DELETE');
 }
 
 /**
@@ -297,39 +295,38 @@ export async function generateQuestions(interviewId, count = 5) {
 
 // Applicants APIs - Updated for new API format
 export async function getAllApplicants() {
-    const response = await apiRequest(`/applicant`);
-    // New API returns applicants with interview bindings
+    const response = await apiRequest(`/applicants`);
     return response.data || response || [];
 }
 
 export async function getApplicantsByInterview(interviewId) {
-    const response = await apiRequest(`/applicant/interview/${interviewId}`);
-    // New API returns applicants with interview bindings
+    const response = await apiRequest(`/interviews/${interviewId}/applicants`);
     return response.data || response || [];
 }
 
 export async function createApplicant(applicant) {
-    return apiRequest(`/applicant`, 'POST', applicant);
+    return apiRequest(`/applicants`, 'POST', applicant);
 }
 
 export async function updateApplicant(id, data) {
-    return apiRequest(`/applicant?id=eq.${id}`, 'PATCH', data);
+    return apiRequest(`/applicants/${id}`, 'PATCH', data);
 }
 
 export async function deleteApplicant(id) {
-    return apiRequest(`/applicant?id=eq.${id}`, 'DELETE');
+    return apiRequest(`/applicants/${id}`, 'DELETE');
 }
 
 export async function bindApplicantToInterview(applicantId, interviewId, status = 'NOT_STARTED') {
-    return apiRequest(`/applicant/${applicantId}/bind`, 'POST', { interviewId, status });
+    // Preferred RESTful: POST /interviews/:interviewId/applicants
+    return apiRequest(`/interviews/${interviewId}/applicants`, 'POST', { applicant_id: applicantId, status });
 }
 
 export async function unbindApplicantFromInterview(applicantId, interviewId) {
-    return apiRequest(`/applicant/${applicantId}/unbind`, 'DELETE', { interviewId });
+    return apiRequest(`/interviews/${interviewId}/applicants/${applicantId}`, 'DELETE');
 }
 
 export async function updateApplicantInterviewStatus(applicantId, interviewId, status = 'COMPLETED') {
-    return apiRequest(`/applicant/${applicantId}/interview_status`, 'PATCH', { interviewId, status });
+    return apiRequest(`/interviews/${interviewId}/applicants/${applicantId}`, 'PATCH', { status });
 }
 
 // Applicant Answer APIs - Updated for new API format

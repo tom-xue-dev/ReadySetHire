@@ -30,17 +30,8 @@ export function createRoutes() {
 
 
 
-  // Question routes
-  // Support PostgREST-style GET: /question?id=eq.{id}
-  router.get('/question', optionalAuth, async (req, res) => {
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3);
-      return questionController.getById(req, res);
-    } else {
-      return questionController.getAll(req, res);
-    }
-  });
+  // Question routes (RESTful)
+  router.get('/question', optionalAuth, questionController.getAll.bind(questionController));
   router.get('/question/interview/:interviewId', optionalAuth, questionController.getByInterviewId.bind(questionController));
   router.post('/question/generate/:interviewId', authenticateToken, questionController.generateQuestions.bind(questionController));
   router.get('/question/difficulty/:difficulty', optionalAuth, questionController.getByDifficulty.bind(questionController));
@@ -48,62 +39,12 @@ export function createRoutes() {
   router.post('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.create.bind(questionController));
   router.patch('/question/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.update.bind(questionController));
   router.delete('/question/:id', authenticateToken, requireRole(['ADMIN','RECRUITER']), questionController.delete.bind(questionController));
-
-  // Legacy PostgREST-style PATCH/DELETE: /question?id=eq.{id}
-  router.patch('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), async (req, res) => {
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3);
-      return questionController.update(req, res);
-    } else {
-      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
-    }
-  });
-
-  router.delete('/question', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3);
-      return questionController.delete(req, res);
-    } else {
-      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
-    }
-  });
+  // Removed legacy PostgREST-style routes for questions
   
-  // Applicant routes (specific endpoints)
-  router.get('/applicant/interview/:interviewId', authenticateToken, applicantController.getByInterviewId.bind(applicantController));
-  router.get('/applicant/status/:status', authenticateToken, applicantController.getByStatus.bind(applicantController));
-  router.get('/applicant/:id/answers', authenticateToken, applicantController.getWithAnswers.bind(applicantController));
-  router.post('/applicant/:applicantId/bind', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.bindToInterview.bind(applicantController));
-  router.delete('/applicant/:applicantId/unbind', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.unbindFromInterview.bind(applicantController));
-  router.patch('/applicant/:applicantId/interview_status', authenticateToken, applicantController.updateInterviewStatus.bind(applicantController));
+  // Removed legacy non-RESTful applicant routes (use RESTful routes below)
 
 
-    // Applicant legacy routes - matching frontend API calls (PostgREST style)
-    router.get('/applicant', authenticateToken, async (req, res) => {
-      // Handle query parameter format: /applicant?id=eq.123
-      const idParam = req.query.id;
-      if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-        req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-        return applicantController.getById(req, res);
-      } else {
-        // If no id parameter, return all applicants
-        return applicantController.getAll(req, res);
-      }
-    });
-  
-    router.post('/applicant', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.create.bind(applicantController));
-  
-    router.delete('/applicant', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
-      // Handle query parameter format: /applicant?id=eq.123
-      const idParam = req.query.id;
-      if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-        req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-        return applicantController.delete(req, res);
-      } else {
-        return res.status(400).json({ error: 'Missing id parameter' });
-      }
-    });
+  // Removed legacy PostgREST-style applicant routes in favor of RESTful
 
   // Bind applicant to interview (preferred): POST /interviews/:interviewId/applicants { applicant_id, status? }
   router.post('/interviews/:interviewId/applicants', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
@@ -137,89 +78,15 @@ export function createRoutes() {
   router.patch('/applicant_answers/:id', authenticateToken, applicantAnswerController.update.bind(applicantAnswerController));
   router.delete('/applicant_answers/:id', authenticateToken, requireRole(['ADMIN']), applicantAnswerController.delete.bind(applicantAnswerController));
 
-  // =================================================================
-  // LEGACY API COMPATIBILITY ROUTES (for frontend compatibility)
-  // These routes match the PostgREST-style API calls used by frontend
-  // =================================================================
-
-
-
-  // Interview legacy routes - matching frontend API calls
-  router.get('/interview', optionalAuth, async (req, res) => {
-    // Handle query parameter format: /interview?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return interviewController.getById(req, res);
-    } else {
-      // If no id parameter, return all interviews (same as /interviews)
-      return interviewController.getAll(req, res);
-    }
-  });
-
-  router.post('/interview', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), interviewController.create.bind(interviewController));
-
-  router.patch('/interview', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), async (req, res) => {
-    // Handle query parameter format: /interview?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return interviewController.update(req, res);
-    } else {
-      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
-    }
-  });
-
-  router.delete('/interview', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), async (req, res) => {
-    // Handle query parameter format: /interview?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return interviewController.delete(req, res);
-    } else {
-      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
-    }
-  });
-
-  // Add missing /interviews route (needed by frontend getInterviews())
+  // RESTful interviews
   router.get('/interviews', optionalAuth, interviewController.getAll.bind(interviewController));
+  // RESTful interview routes
+  router.get('/interviews/:id', optionalAuth, interviewController.getById.bind(interviewController));
+  router.post('/interviews', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), interviewController.create.bind(interviewController));
+  router.patch('/interviews/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), interviewController.update.bind(interviewController));
+  router.delete('/interviews/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), interviewController.delete.bind(interviewController));
 
-  // Job legacy routes - matching frontend API calls (PostgREST style)
-  router.get('/job', optionalAuth, async (req, res) => {
-    // Handle query parameter format: /job?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return jobController.getById(req, res);
-    } else {
-      // If no id parameter, return all jobs (same as /jobs)
-      return jobController.getAll(req, res);
-    }
-  });
-
-  router.post('/job', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.create.bind(jobController));
-
-  router.patch('/job', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), async (req, res) => {
-    // Handle query parameter format: /job?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return jobController.update(req, res);
-    } else {
-      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
-    }
-  });
-
-  router.delete('/job', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), async (req, res) => {
-    // Handle query parameter format: /job?id=eq.123
-    const idParam = req.query.id;
-    if (typeof idParam === 'string' && idParam.startsWith('eq.')) {
-      req.params.id = idParam.substring(3); // Remove 'eq.' prefix
-      return jobController.delete(req, res);
-    } else {
-      return res.status(400).json({ error: 'Invalid query parameter format. Expected: id=eq.{id}' });
-    }
-  });
+  // Removed legacy PostgREST-style job routes in favor of RESTful
 
   // Standard RESTful Job routes (keep for compatibility)
   router.get('/jobs', optionalAuth, jobController.getAll.bind(jobController));
@@ -230,6 +97,27 @@ export function createRoutes() {
   router.patch('/jobs/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.update.bind(jobController));
   router.patch('/jobs/:id/publish', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.publish.bind(jobController));
   router.delete('/jobs/:id', authenticateToken, requireRole(['ADMIN']), jobController.delete.bind(jobController));
+  
+  // RESTful Applicant routes
+  router.get('/applicants', authenticateToken, applicantController.getAll.bind(applicantController));
+  router.get('/applicants/:id', authenticateToken, applicantController.getById.bind(applicantController));
+  router.post('/applicants', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.create.bind(applicantController));
+  router.patch('/applicants/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.update.bind(applicantController));
+  router.delete('/applicants/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), applicantController.delete.bind(applicantController));
+  
+  // RESTful Interview ↔ Applicant bindings
+  router.get('/interviews/:interviewId/applicants', authenticateToken, applicantController.getByInterviewId.bind(applicantController));
+  router.delete('/interviews/:interviewId/applicants/:applicantId', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
+    // Forward to legacy handler with params mapped
+    (req as any).query.interviewId = req.params.interviewId;
+    return applicantController.unbindFromInterview(req as any, res);
+  });
+  router.patch('/interviews/:interviewId/applicants/:applicantId', authenticateToken, async (req, res) => {
+    // Normalize body for status update
+    const status = (req.body && (req.body.status || req.body.interviewStatus));
+    (req as any).body = { interviewId: Number(req.params.interviewId), status };
+    return applicantController.updateInterviewStatus(req as any, res);
+  });
   
 
 
