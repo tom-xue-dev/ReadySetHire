@@ -6,122 +6,82 @@ async function seed() {
     console.log('🌱 Starting database seed...');
     try {
         // Create users
-        const admin = await prisma.user.upsert({
-            where: { username: 'admin' },
-            update: {},
-            create: {
+        const admin = await prisma.user.create({
+            data: {
                 username: 'admin',
                 email: 'admin@readysethire.com',
-                passwordHash: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+                passwordHash: '$2b$10$K7L/8Y3NTAQ/Gub52dvpDOhfUiuR.Ax9Q7L8rXYYQJf7/hZ7.Z.Bq', // password: admin123
                 firstName: 'Admin',
                 lastName: 'User',
                 role: 'ADMIN',
             },
         });
-        const recruiter1 = await prisma.user.upsert({
-            where: { username: 'recruiter1' },
-            update: {},
-            create: {
+        const recruiter1 = await prisma.user.create({
+            data: {
                 username: 'recruiter1',
-                email: 'recruiter1@company.com',
-                passwordHash: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-                firstName: 'John',
-                lastName: 'Doe',
+                email: 'recruiter1@readysethire.com',
+                passwordHash: '$2b$10$K7L/8Y3NTAQ/Gub52dvpDOhfUiuR.Ax9Q7L8rXYYQJf7/hZ7.Z.Bq', // password: admin123
+                firstName: 'Sarah',
+                lastName: 'Johnson',
                 role: 'RECRUITER',
             },
         });
-        const recruiter2 = await prisma.user.upsert({
-            where: { username: 'recruiter2' },
-            update: {},
-            create: {
+        const recruiter2 = await prisma.user.create({
+            data: {
                 username: 'recruiter2',
-                email: 'recruiter2@company.com',
-                passwordHash: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-                firstName: 'Jane',
-                lastName: 'Smith',
+                email: 'recruiter2@readysethire.com',
+                passwordHash: '$2b$10$K7L/8Y3NTAQ/Gub52dvpDOhfUiuR.Ax9Q7L8rXYYQJf7/hZ7.Z.Bq', // password: admin123
+                firstName: 'Michael',
+                lastName: 'Chen',
                 role: 'RECRUITER',
             },
         });
         console.log('✅ Users created');
         // Create jobs
-        const job1 = await prisma.job.upsert({
-            where: { id: 1 },
-            update: {},
-            create: {
-                title: 'Senior Frontend Developer',
-                description: 'We are looking for a skilled frontend developer with React experience to join our team. You will be responsible for building user interfaces and ensuring great user experience.',
-                requirements: 'React, TypeScript, CSS, HTML, JavaScript, Git',
-                location: 'Remote',
+        const job1 = await prisma.job.create({
+            data: {
+                title: 'Frontend Developer',
+                description: 'Looking for an experienced React developer to join our team.',
+                requirements: 'React, TypeScript, 3+ years experience',
+                location: 'Brisbane, QLD',
                 salaryRange: '$80,000 - $120,000',
                 status: 'PUBLISHED',
-                userId: admin.id,
-                publishedAt: new Date(),
-            },
-        });
-        const job2 = await prisma.job.upsert({
-            where: { id: 2 },
-            update: {},
-            create: {
-                title: 'Backend Developer',
-                description: 'Join our backend team to build scalable APIs and microservices. Experience with Node.js and PostgreSQL required.',
-                requirements: 'Node.js, PostgreSQL, Express, REST APIs, Docker',
-                location: 'Sydney, Australia',
-                salaryRange: '$70,000 - $100,000',
-                status: 'PUBLISHED',
-                userId: admin.id,
-                publishedAt: new Date(),
-            },
-        });
-        const job3 = await prisma.job.upsert({
-            where: { id: 3 },
-            update: {},
-            create: {
-                title: 'Full Stack Developer',
-                description: 'Looking for a versatile developer who can work on both frontend and backend. Perfect for someone who wants to grow their skills.',
-                requirements: 'React, Node.js, PostgreSQL, TypeScript',
-                location: 'Melbourne, Australia',
-                salaryRange: '$75,000 - $110,000',
-                status: 'PUBLISHED',
                 userId: recruiter1.id,
+                publishedAt: new Date(),
+            },
+        });
+        const job2 = await prisma.job.create({
+            data: {
+                title: 'Backend Engineer',
+                description: 'Node.js backend engineer for scalable applications.',
+                requirements: 'Node.js, PostgreSQL, Docker, 2+ years experience',
+                location: 'Sydney, NSW',
+                salaryRange: '$90,000 - $130,000',
+                status: 'PUBLISHED',
+                userId: recruiter2.id,
                 publishedAt: new Date(),
             },
         });
         console.log('✅ Jobs created');
         // Create interviews
-        const interview1 = await prisma.interview.upsert({
-            where: { id: 1 },
-            update: {},
-            create: {
-                title: 'Frontend Developer Interview',
-                jobRole: 'Senior Frontend Developer',
-                description: 'Technical interview focusing on React, TypeScript, and modern frontend development practices.',
+        const interview1 = await prisma.interview.create({
+            data: {
+                title: 'Frontend Developer Technical Interview',
+                jobRole: 'Frontend Developer',
+                description: 'Technical interview focusing on React and TypeScript skills.',
                 status: 'PUBLISHED',
-                userId: admin.id,
+                userId: recruiter1.id,
                 jobId: job1.id,
             },
         });
-        const interview2 = await prisma.interview.upsert({
-            where: { id: 2 },
-            update: {},
-            create: {
-                title: 'Backend Developer Interview',
-                jobRole: 'Backend Developer',
-                description: 'Technical interview covering Node.js, database design, and API development.',
+        const interview2 = await prisma.interview.create({
+            data: {
+                title: 'Backend Engineer System Design',
+                jobRole: 'Backend Engineer',
+                description: 'System design interview for backend engineering role.',
                 status: 'PUBLISHED',
-                userId: admin.id,
+                userId: recruiter2.id,
                 jobId: job2.id,
-            },
-        });
-        const interview3 = await prisma.interview.upsert({
-            where: { id: 3 },
-            update: {},
-            create: {
-                title: 'Full Stack Interview',
-                jobRole: 'Full Stack Developer',
-                description: 'Comprehensive interview covering both frontend and backend technologies.',
-                status: 'PUBLISHED',
-                userId: recruiter1.id,
-                jobId: job3.id,
             },
         });
         console.log('✅ Interviews created');
@@ -129,39 +89,33 @@ async function seed() {
         const questions = [
             {
                 interviewId: interview1.id,
-                question: 'Explain the difference between React functional components and class components. When would you use each?',
-                difficulty: 'INTERMEDIATE',
-                userId: admin.id,
-            },
-            {
-                interviewId: interview1.id,
-                question: 'How do you handle state management in a large React application? Discuss different approaches.',
-                difficulty: 'ADVANCED',
-                userId: admin.id,
-            },
-            {
-                interviewId: interview1.id,
-                question: 'What is TypeScript and what benefits does it provide over JavaScript?',
-                difficulty: 'EASY',
-                userId: admin.id,
-            },
-            {
-                interviewId: interview2.id,
-                question: 'Explain how you would design a RESTful API for a blog system.',
-                difficulty: 'INTERMEDIATE',
-                userId: admin.id,
-            },
-            {
-                interviewId: interview2.id,
-                question: 'What are database indexes and when would you use them?',
-                difficulty: 'INTERMEDIATE',
-                userId: admin.id,
-            },
-            {
-                interviewId: interview3.id,
-                question: 'Describe your experience with both frontend and backend development.',
+                question: 'What is the difference between React functional and class components?',
                 difficulty: 'EASY',
                 userId: recruiter1.id,
+            },
+            {
+                interviewId: interview1.id,
+                question: 'Explain the concept of React hooks and provide examples.',
+                difficulty: 'INTERMEDIATE',
+                userId: recruiter1.id,
+            },
+            {
+                interviewId: interview1.id,
+                question: 'How would you optimize a React application for performance?',
+                difficulty: 'ADVANCED',
+                userId: recruiter1.id,
+            },
+            {
+                interviewId: interview2.id,
+                question: 'Explain the difference between SQL and NoSQL databases.',
+                difficulty: 'EASY',
+                userId: recruiter2.id,
+            },
+            {
+                interviewId: interview2.id,
+                question: 'Design a scalable chat application architecture.',
+                difficulty: 'ADVANCED',
+                userId: recruiter2.id,
             },
         ];
         for (const questionData of questions) {
@@ -173,55 +127,39 @@ async function seed() {
         // Create applicants
         const applicants = [
             {
+                interviewId: interview1.id,
+                title: 'MR',
                 firstname: 'Alex',
                 surname: 'Johnson',
                 phoneNumber: '+61 412 345 678',
                 emailAddress: 'alex.johnson@email.com',
-                ownerId: admin.id,
+                interviewStatus: 'NOT_STARTED',
+                userId: admin.id,
             },
             {
+                interviewId: interview1.id,
+                title: 'MS',
                 firstname: 'Sarah',
                 surname: 'Wilson',
                 phoneNumber: '+61 423 456 789',
                 emailAddress: 'sarah.wilson@email.com',
-                ownerId: admin.id,
+                interviewStatus: 'COMPLETED',
+                userId: admin.id,
             },
             {
+                interviewId: interview2.id,
+                title: 'MR',
                 firstname: 'Michael',
                 surname: 'Brown',
                 phoneNumber: '+61 434 567 890',
                 emailAddress: 'michael.brown@email.com',
-                ownerId: admin.id,
+                interviewStatus: 'NOT_STARTED',
+                userId: admin.id,
             },
         ];
-        const createdApplicants = [];
         for (const applicantData of applicants) {
-            const applicant = await prisma.applicant.create({
+            await prisma.applicant.create({
                 data: applicantData,
-            });
-            createdApplicants.push(applicant);
-        }
-        // Create applicant-interview relationships
-        const applicantInterviews = [
-            {
-                applicantId: createdApplicants[0].id,
-                interviewId: interview1.id,
-                interviewStatus: 'NOT_STARTED',
-            },
-            {
-                applicantId: createdApplicants[1].id,
-                interviewId: interview1.id,
-                interviewStatus: 'COMPLETED',
-            },
-            {
-                applicantId: createdApplicants[2].id,
-                interviewId: interview2.id,
-                interviewStatus: 'NOT_STARTED',
-            },
-        ];
-        for (const applicantInterviewData of applicantInterviews) {
-            await prisma.applicantInterview.create({
-                data: applicantInterviewData,
             });
         }
         console.log('✅ Applicants created');

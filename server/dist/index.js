@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const database_1 = __importDefault(require("./services/database"));
 const routes_1 = require("./routes");
+const docs_1 = require("./routes/docs");
 // Load environment variables
 dotenv_1.default.config();
 // Set default DATABASE_URL if not provided
@@ -35,6 +36,8 @@ app.get('/health', (req, res) => {
 });
 // API routes
 app.use('/api', (0, routes_1.createRoutes)());
+// Swagger docs
+app.use('/api', (0, docs_1.createDocsRouter)());
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);

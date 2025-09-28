@@ -123,7 +123,7 @@ describe('Database Integration Tests', () => {
 
       // Act
       const updatedJob = await jobService.update(
-        { id: job.id },
+        job.id,
         { status: 'PUBLISHED' as const }
       );
 
@@ -213,9 +213,9 @@ describe('Database Integration Tests', () => {
         userId: testUser.id,
       });
 
-      const interviewApplicants = await applicantService.findByInterviewId(
-        interview.id
-      );
+      const interviewApplicants = await applicantService.findMany({
+        interviewId: interview.id,
+      });
 
       // Assert
       expect(applicant.interviewId).toBe(interview.id);
@@ -297,7 +297,7 @@ describe('Database Integration Tests', () => {
 
       // 7. Update applicant status
       const updatedApplicant = await applicantService.update(
-        { id: applicant.id },
+        applicant.id,
         { interviewStatus: 'COMPLETED' as const }
       );
 
