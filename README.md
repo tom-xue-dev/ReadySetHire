@@ -117,11 +117,7 @@ VITE_JWT_TOKEN=<optional-dev-token>
 VITE_USERNAME=<optional-dev-username>
 ```
 
-## Audio & ASR Flow
-1) Browser records audio (prefers WAV 16k mono; otherwise WebM→WAV 转换)
-2) 前端以 `application/octet-stream` 直接上传 ArrayBuffer 至 `/api/model/whisper`
-3) 后端 Whisper 服务解析 WAV 头/样本并转写，返回 `{ success, data.transcription }`
-4) 前端失败回退为手动输入，支持重试
+
 
 ## Development Notes
 - Prisma schema: `server/prisma/schema.prisma`
