@@ -23,6 +23,95 @@
     "loginLink": "Login",
     "dashboardLink": "Dashboard"
   },
+  "landing": {
+    "header": {
+      "brand": "ReadySetHire",
+      "nav": {
+        "features": "Features",
+        "howItWorks": "How it works",
+        "contact": "Contact"
+      },
+      "cta": {
+        "login": "Login",
+        "register": "Register"
+      }
+    },
+    "hero": {
+      "title": "Hire faster with AI-powered interviews and resume screening",
+      "subtitle": "Streamline your hiring workflow from job posting to offer with an all-in-one platform.",
+      "primaryCta": "Get started",
+      "secondaryCta": "See how it works"
+    },
+    "features": {
+      "title": "What you can do",
+      "items": {
+        "ats": {
+          "title": "Track applicants",
+          "desc": "Manage job postings, candidates, and interview stages."
+        },
+        "resumeAI": {
+          "title": "AI resume assessment",
+          "desc": "Screen resumes against your JD in seconds."
+        },
+        "voiceInterview": {
+          "title": "Voice interview",
+          "desc": "Record and transcribe answers securely."
+        },
+        "analytics": {
+          "title": "Insights",
+          "desc": "Understand pipeline efficiency and hiring metrics."
+        },
+        "collaboration": {
+          "title": "Team collaboration",
+          "desc": "Share notes and evaluations with your team."
+        },
+        "multilingual": {
+          "title": "Multilingual UI",
+          "desc": "English and Chinese built-in."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "steps": {
+        "one": {
+          "title": "Create a job",
+          "desc": "Define the role and requirements."
+        },
+        "two": {
+          "title": "Add questions",
+          "desc": "Create interview questions or use templates."
+        },
+        "three": {
+          "title": "Invite applicants",
+          "desc": "Collect resumes and run voice interviews."
+        },
+        "four": {
+          "title": "Review and decide",
+          "desc": "Compare answers, assess resumes, and move forward."
+        }
+      }
+    },
+    "ctaBottom": {
+      "title": "Ready to streamline hiring?",
+      "subtitle": "Create an account or sign in to continue.",
+      "primary": "Create account",
+      "secondary": "Sign in"
+    },
+    "footer": {
+      "company": "Company",
+      "resources": "Resources",
+      "legal": "Legal",
+      "links": {
+        "about": "About",
+        "contact": "Contact",
+        "docs": "Docs",
+        "api": "API",
+        "privacy": "Privacy",
+        "terms": "Terms"
+      }
+    }
+  },
   "interview": {
     "placeholder": "Type your answer here or use voice recording...",
     "transcribing": "Transcribing...",

@@ -24,6 +24,95 @@
     "loginLink": "登录",
     "dashboardLink": "仪表板"
   },
+  "landing": {
+    "header": {
+      "brand": "ReadySetHire",
+      "nav": {
+        "features": "功能",
+        "howItWorks": "如何运作",
+        "contact": "联系"
+      },
+      "cta": {
+        "login": "登录",
+        "register": "注册"
+      }
+    },
+    "hero": {
+      "title": "用AI驱动的面试与简历筛选加速招聘",
+      "subtitle": "从职位发布到发放Offer，一站式平台简化招聘流程。",
+      "primaryCta": "立即开始",
+      "secondaryCta": "了解流程"
+    },
+    "features": {
+      "title": "你可以做到",
+      "items": {
+        "ats": {
+          "title": "追踪候选人",
+          "desc": "管理职位、候选人与面试阶段。"
+        },
+        "resumeAI": {
+          "title": "AI简历评估",
+          "desc": "秒级对照JD筛选简历。"
+        },
+        "voiceInterview": {
+          "title": "语音面试",
+          "desc": "安全录制并转录回答。"
+        },
+        "analytics": {
+          "title": "洞察",
+          "desc": "了解招聘漏斗与效率指标。"
+        },
+        "collaboration": {
+          "title": "团队协作",
+          "desc": "与团队共享笔记与评估。"
+        },
+        "multilingual": {
+          "title": "多语言界面",
+          "desc": "内置中英双语。"
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "如何运作",
+      "steps": {
+        "one": {
+          "title": "创建职位",
+          "desc": "定义岗位与要求。"
+        },
+        "two": {
+          "title": "添加问题",
+          "desc": "自建面试题或使用模板。"
+        },
+        "three": {
+          "title": "邀请候选人",
+          "desc": "收集简历并进行语音面试。"
+        },
+        "four": {
+          "title": "评审并决策",
+          "desc": "对比回答、评估简历并推进。"
+        }
+      }
+    },
+    "ctaBottom": {
+      "title": "准备好简化招聘了吗？",
+      "subtitle": "创建账户或登录继续。",
+      "primary": "创建账户",
+      "secondary": "登录"
+    },
+    "footer": {
+      "company": "公司",
+      "resources": "资源",
+      "legal": "法律",
+      "links": {
+        "about": "关于我们",
+        "contact": "联系",
+        "docs": "文档",
+        "api": "API",
+        "privacy": "隐私政策",
+        "terms": "服务条款"
+      }
+    }
+  },
   "interview": {
     "placeholder": "在此输入您的答案或使用语音录制...",
     "transcribing": "转录中...",
