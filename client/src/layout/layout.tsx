@@ -1,6 +1,6 @@
 import type {ReactNode} from "react";
 import { useState } from "react";
-import Header from "../components/Header";
+import Header from "../components/Header.tsx";
 import Sidebar from "../components/Sidebar.tsx";
 import { useI18n } from "../contexts/I18nContext";
 
