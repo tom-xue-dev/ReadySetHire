@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    defaults: { run: { working-directory: server } }
+    defaults: { run: { working-directory: client } }
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
