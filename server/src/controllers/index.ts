@@ -391,9 +391,19 @@ export class ApplicantController extends CRUDController<any> {
     const phoneNumber = data.phoneNumber || data.phone_number;
     const ownerId = req?.user?.id || data.ownerId || data.owner_id;
     
-    ValidationUtils.validateRequired(data, ['firstname', 'surname']);
+    // Handle firstname/firstName and surname/lastName
+    const firstname = data.firstname || data.firstName;
+    const surname = data.surname || data.lastName;
     
-    // Check required fields with proper field names
+    // Check required fields
+    if (!firstname) {
+      throw new Error('Missing required field: firstname/firstName');
+    }
+    
+    if (!surname) {
+      throw new Error('Missing required field: surname/lastName');
+    }
+    
     if (!emailAddress) {
       throw new Error('Missing required field: emailAddress');
     }
@@ -411,11 +421,11 @@ export class ApplicantController extends CRUDController<any> {
     }
 
     return {
-      firstname: ValidationUtils.sanitizeString(data.firstname),
-      surname: ValidationUtils.sanitizeString(data.surname),
+      firstName: ValidationUtils.sanitizeString(firstname),
+      lastName: ValidationUtils.sanitizeString(surname),
       phoneNumber: phoneNumber ? ValidationUtils.sanitizeString(phoneNumber) : null,
       emailAddress: ValidationUtils.sanitizeString(emailAddress),
-      ownerId: ownerId
+      userId: ownerId  // Prisma expects userId, not ownerId
     };
   }
 

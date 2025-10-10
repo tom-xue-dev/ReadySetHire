@@ -142,9 +142,8 @@ async function seed() {
     const applicants = [
       {
         interviewId: interview1.id,
-        title: 'MR' as const,
-        firstname: 'Alex',
-        surname: 'Johnson',
+        firstName: 'Alex',
+        lastName: 'Johnson',
         phoneNumber: '+61 412 345 678',
         emailAddress: 'alex.johnson@email.com',
         interviewStatus: 'NOT_STARTED' as const,
@@ -152,9 +151,8 @@ async function seed() {
       },
       {
         interviewId: interview1.id,
-        title: 'MS' as const,
-        firstname: 'Sarah',
-        surname: 'Wilson',
+        firstName: 'Sarah',
+        lastName: 'Wilson',
         phoneNumber: '+61 423 456 789',
         emailAddress: 'sarah.wilson@email.com',
         interviewStatus: 'COMPLETED' as const,
@@ -162,9 +160,8 @@ async function seed() {
       },
       {
         interviewId: interview2.id,
-        title: 'MR' as const,
-        firstname: 'Michael',
-        surname: 'Brown',
+        firstName: 'Michael',
+        lastName: 'Brown',
         phoneNumber: '+61 434 567 890',
         emailAddress: 'michael.brown@email.com',
         interviewStatus: 'NOT_STARTED' as const,

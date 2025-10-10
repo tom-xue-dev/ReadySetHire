@@ -28,9 +28,7 @@ export function createRoutes() {
   });
 
 
-
-
-  // Question routes (RESTful)
+  // Question routes
   router.get('/question', optionalAuth, questionController.getAll.bind(questionController));
   router.get('/question/interview/:interviewId', optionalAuth, questionController.getByInterviewId.bind(questionController));
   router.post('/question/generate/:interviewId', authenticateToken, questionController.generateQuestions.bind(questionController));
@@ -39,19 +37,13 @@ export function createRoutes() {
   router.post('/question', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.create.bind(questionController));
   router.patch('/question/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER', 'INTERVIEWER']), questionController.update.bind(questionController));
   router.delete('/question/:id', authenticateToken, requireRole(['ADMIN','RECRUITER']), questionController.delete.bind(questionController));
-  // Removed legacy PostgREST-style routes for questions
-  
-  // Removed legacy non-RESTful applicant routes (use RESTful routes below)
 
-
-  // Removed legacy PostgREST-style applicant routes in favor of RESTful
 
   // Bind applicant to interview (preferred): POST /interviews/:interviewId/applicants { applicant_id, status? }
   router.post('/interviews/:interviewId/applicants', authenticateToken, requireRole(['ADMIN','RECRUITER']), async (req, res) => {
     const interviewId = parseInt(req.params.interviewId);
     const applicantIdRaw = (req.body && (req.body.applicant_id ?? req.body.applicantId));
     const status = (req.body && (req.body.status)) || 'NOT_STARTED';
-
     if (isNaN(interviewId)) {
       return res.status(400).json({ error: 'Invalid interview ID format' });
     }
@@ -59,7 +51,6 @@ export function createRoutes() {
     if (isNaN(applicantId)) {
       return res.status(400).json({ error: 'Invalid applicant ID format' });
     }
-
     // Reuse controller logic
     (req as any).params.applicantId = String(applicantId);
     (req as any).body = { interviewId, status };
@@ -96,7 +87,7 @@ export function createRoutes() {
   router.post('/jobs', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.create.bind(jobController));
   router.patch('/jobs/:id', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.update.bind(jobController));
   router.patch('/jobs/:id/publish', authenticateToken, requireRole(['ADMIN', 'RECRUITER']), jobController.publish.bind(jobController));
-  router.delete('/jobs/:id', authenticateToken, requireRole(['ADMIN']), jobController.delete.bind(jobController));
+  router.delete('/jobs/:id', authenticateToken, requireRole(['ADMIN','RECRUITER']), jobController.delete.bind(jobController));
   
   // RESTful Applicant routes
   router.get('/applicants', authenticateToken, applicantController.getAll.bind(applicantController));

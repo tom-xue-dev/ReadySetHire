@@ -218,19 +218,12 @@ export class ApplicantService extends BaseService<any> {
   async findByInterviewId(interviewId: number) {
     return (this.prisma as any)[this.model].findMany({
       where: {
-        applicantInterviews: {
-          some: { interviewId }
-        }
+        interviewId: interviewId
       },
       include: {
-        applicantInterviews: {
-          where: { interviewId },
+        interview: {
           include: {
-            interview: {
-              include: {
-                job: true
-              }
-            }
+            job: true
           }
         }
       }
@@ -239,15 +232,13 @@ export class ApplicantService extends BaseService<any> {
 
   async findByStatus(status: string) {
     return (this.prisma as any)[this.model].findMany({
+      where: {
+        interviewStatus: status
+      },
       include: {
-        applicantInterviews: {
-          where: { interviewStatus: status },
+        interview: {
           include: {
-            interview: {
-              include: {
-                job: true
-              }
-            }
+            job: true
           }
         }
       }
@@ -264,13 +255,9 @@ export class ApplicantService extends BaseService<any> {
               question: true,
             },
           },
-          applicantInterviews: {
+          interview: {
             include: {
-              interview: {
-                include: {
-                  job: true
-                }
-              }
+              job: true
             }
           }
         },
@@ -281,13 +268,9 @@ export class ApplicantService extends BaseService<any> {
   async getAllWithInterviews() {
     return (this.prisma as any)[this.model].findMany({
       include: {
-        applicantInterviews: {
+        interview: {
           include: {
-            interview: {
-              include: {
-                job: true
-              }
-            }
+            job: true
           }
         }
       }
@@ -295,29 +278,29 @@ export class ApplicantService extends BaseService<any> {
   }
 
   async bindToInterview(applicantId: number, interviewId: number, status: string = 'NOT_STARTED') {
-    return (this.prisma as any).applicantInterview.create({
-      data: {
-        applicantId,
-        interviewId,
-        interviewStatus: status
-      }
+    // Update the applicant's interview ID and status
+    return this.update(applicantId, {
+      interviewId: interviewId,
+      interviewStatus: status
     });
   }
 
   async unbindFromInterview(applicantId: number, interviewId: number) {
-    return (this.prisma as any).applicantInterview.deleteMany({
-      where: {
-        applicantId,
-        interviewId
-      }
-    });
+    // Verify the applicant belongs to this interview before deleting
+    const applicant = await this.findUnique({ id: applicantId });
+    if (applicant && applicant.interviewId === interviewId) {
+      return this.delete({ id: applicantId });
+    }
+    throw new Error('Applicant not found or does not belong to this interview');
   }
 
   async updateInterviewStatus(applicantId: number, interviewId: number, status: string) {
-    return (this.prisma as any).applicantInterview.updateMany({
-      where: { applicantId, interviewId },
-      data: { interviewStatus: status }
-    });
+    // Verify the applicant belongs to this interview before updating
+    const applicant = await this.findUnique({ id: applicantId });
+    if (!applicant || applicant.interviewId !== interviewId) {
+      throw new Error('Applicant not found or does not belong to this interview');
+    }
+    return this.update(applicantId, { interviewStatus: status });
   }
 }
 

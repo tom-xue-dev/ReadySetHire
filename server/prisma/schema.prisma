@@ -10,6 +10,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Configure Prisma seed
+// Prisma will run `npm run db:seed` when `prisma db seed` is executed
+// See package.json scripts
+
 model User {
   id           Int      @id @default(autoincrement())
   username     String   @unique
@@ -90,27 +94,26 @@ model Question {
 }
 
 model Applicant {
-  id              Int             @id @default(autoincrement())
-  interviewId     Int             @map("interview_id")
-  title           Title
-  firstname       String
-  surname         String
-  phoneNumber     String?         @map("phone_number")
-  emailAddress    String          @map("email_address")
+  id              Int              @id @default(autoincrement())
+  interviewId     Int?             @map("interview_id")
+  firstName       String           @map("firstname")
+  lastName        String           @map("surname")
+  phoneNumber     String?          @map("phone_number")
+  emailAddress    String           @map("email_address")
   interviewStatus InterviewStatus @default(NOT_STARTED) @map("interview_status")
   userId          Int             @map("user_id")
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  interview        Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  interview        Interview?        @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   applicantAnswers ApplicantAnswer[]
 
   @@map("applicants")
 }
 
-// Note: ApplicantInterview model removed as applicants table directly references interviews
+
 
 model ApplicantAnswer {
   id          Int      @id @default(autoincrement())

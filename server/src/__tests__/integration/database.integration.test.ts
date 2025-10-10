@@ -204,9 +204,8 @@ describe('Database Integration Tests', () => {
       // Act
       const applicant = await applicantService.create({
         interviewId: interview.id,
-        title: 'MR' as const,
-        firstname: 'John',
-        surname: 'Doe',
+        firstName: 'John',
+        lastName: 'Doe',
         phoneNumber: '+61 412 345 678',
         emailAddress: 'john.doe@example.com',
         interviewStatus: 'NOT_STARTED' as const,
@@ -220,7 +219,7 @@ describe('Database Integration Tests', () => {
       // Assert
       expect(applicant.interviewId).toBe(interview.id);
       expect(interviewApplicants).toHaveLength(1);
-      expect(interviewApplicants[0].firstname).toBe('John');
+      expect(interviewApplicants[0].firstName).toBe('John');
     });
   });
 
@@ -269,9 +268,8 @@ describe('Database Integration Tests', () => {
       // 5. Add applicant
       const applicant = await applicantService.create({
         interviewId: interview.id,
-        title: 'MS' as const,
-        firstname: 'Jane',
-        surname: 'Smith',
+        firstName: 'Jane',
+        lastName: 'Smith',
         emailAddress: 'jane.smith@example.com',
         interviewStatus: 'NOT_STARTED' as const,
         userId: user.id,

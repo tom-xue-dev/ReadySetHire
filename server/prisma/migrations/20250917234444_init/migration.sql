@@ -76,7 +76,7 @@ CREATE TABLE "public"."questions" (
 -- CreateTable
 CREATE TABLE "public"."applicants" (
     "id" SERIAL NOT NULL,
-    "interview_id" INTEGER NOT NULL,
+    "interview_id" INTEGER,
     "title" "public"."Title" NOT NULL,
     "firstname" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
@@ -103,6 +103,8 @@ CREATE TABLE "public"."applicant_answers" (
 
     CONSTRAINT "applicant_answers_pkey" PRIMARY KEY ("id")
 );
+
+-- initiliaze user admin
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_key" ON "public"."users"("username");
@@ -142,3 +144,7 @@ ALTER TABLE "public"."applicant_answers" ADD CONSTRAINT "applicant_answers_appli
 
 -- AddForeignKey
 ALTER TABLE "public"."applicant_answers" ADD CONSTRAINT "applicant_answers_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "public"."applicants" ALTER COLUMN "interview_id" DROP NOT NULL;
+
+ALTER TABLE "public"."applicants" DROP COLUMN "title";

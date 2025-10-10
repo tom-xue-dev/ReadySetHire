@@ -21,15 +21,13 @@ type Interview = {
 
 type Applicant = {
   id: number;
-  firstname: string;
-  surname: string;
+  firstName: string;
+  lastName: string;
   phoneNumber?: string;
   emailAddress: string;
-  applicantInterviews?: Array<{
-    id: number;
-    interviewStatus: string;
-    interview: Interview;
-  }>;
+  interviewId?: number;
+  interviewStatus?: string;
+  interview?: Interview;
 };
 
 type Row = {
@@ -63,36 +61,36 @@ export default function ApplicantPage() {
         const applicants: Applicant[] = await getAllApplicants();
         console.log("ApplicantPage: Received applicants", applicants);
         
-        // Flatten applicants with their interview data
-        const rows: Row[] = [];
-        
-        applicants.forEach(applicant => {
-          if (applicant.applicantInterviews && applicant.applicantInterviews.length > 0) {
-            // If applicant has interviews, create a row for each interview
-            applicant.applicantInterviews.forEach(ai => {
-              rows.push({
-                id: applicant.id,
-                name: `${applicant.firstname ?? ''} ${applicant.surname ?? ''}`.trim(),
-                email: applicant.emailAddress ?? '',
-                phone: applicant.phoneNumber ?? '',
-                interviewTitle: ai.interview.title,
-                jobTitle: ai.interview.job?.title ?? 'N/A',
-                status: ai.interviewStatus,
-                interviewId: ai.interview.id,
-              });
-            });
-          } else {
-            // If applicant has no interviews, still show them
-            rows.push({
+        // Process applicants with their interview data
+        const rows: Row[] = applicants.map(applicant => {
+          // Handle both camelCase and snake_case from backend
+          const firstName = applicant.firstName || (applicant as any).firstname || '';
+          const lastName = applicant.lastName || (applicant as any).surname || '';
+          
+          if (applicant.interview) {
+            // Applicant is bound to an interview
+            return {
               id: applicant.id,
-              name: `${applicant.firstname ?? ''} ${applicant.surname ?? ''}`.trim(),
+              name: `${firstName} ${lastName}`.trim(),
+              email: applicant.emailAddress ?? '',
+              phone: applicant.phoneNumber ?? '',
+              interviewTitle: applicant.interview.title,
+              jobTitle: applicant.interview.job?.title ?? 'N/A',
+              status: applicant.interviewStatus ?? 'NOT_STARTED',
+              interviewId: applicant.interview.id,
+            };
+          } else {
+            // Applicant is not bound to an interview
+            return {
+              id: applicant.id,
+              name: `${firstName} ${lastName}`.trim(),
               email: applicant.emailAddress ?? '',
               phone: applicant.phoneNumber ?? '',
               interviewTitle: 'Not Bound',
               jobTitle: 'N/A',
               status: 'Not Bound',
               interviewId: undefined,
-            });
+            };
           }
         });
         
@@ -115,10 +113,10 @@ export default function ApplicantPage() {
     }
     
     try {
-      // Add ownerId to the applicant data
+      // Add ownerId to the applicant data (in camelCase)
       const applicantData = {
         ...values,
-        owner_id: user.id
+        ownerId: user.id
       };
       
       await createApplicant(applicantData);
@@ -138,10 +136,10 @@ export default function ApplicantPage() {
     }
     
     try {
-      // Add ownerId to the applicant data
+      // Add ownerId to the applicant data (in camelCase)
       const applicantData = {
         ...values,
-        owner_id: user.id
+        ownerId: user.id
       };
       
       await updateApplicant(editOpen.id, applicantData);
@@ -327,10 +325,10 @@ export default function ApplicantPage() {
             <ApplicantForm 
               initial={{
                 id: editOpen.id,
-                firstname: editOpen.name.split(' ')[0] || '',
-                surname: editOpen.name.split(' ').slice(1).join(' ') || '',
-                phone_number: editOpen.phone,
-                email_address: editOpen.email
+                firstName: editOpen.name.split(' ')[0] || '',
+                lastName: editOpen.name.split(' ').slice(1).join(' ') || '',
+                phoneNumber: editOpen.phone,
+                emailAddress: editOpen.email
               }} 
               onSubmit={handleUpdate} 
               onCancel={() => setEditOpen(null)} 

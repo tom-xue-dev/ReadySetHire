@@ -1,54 +1,56 @@
-# Use Node.js 18 with Debian base for better compatibility with native modules
-FROM node:18-slim
+  FROM node:18-slim AS builder
 
-# Install system dependencies needed for ONNX Runtime and other native modules
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+  RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates openssl libc6 libstdc++6 libgomp1 \
+   && rm -rf /var/lib/apt/lists/*
+  
+  WORKDIR /app
+  
 
-# Set working directory
-WORKDIR /app
+  COPY package.json package-lock.json ./
+  
 
-# Copy package files
-COPY package*.json ./
+  RUN npm ci
+  
 
-# Install all dependencies (needed for build)
-RUN npm ci
+  COPY tsconfig.json ./
+  COPY prisma ./prisma
+  COPY src ./src
+  COPY package.json package-lock.json ./
+  
 
-# Copy source code (excluding test files)
-COPY src ./src
-COPY tsconfig.json ./
-COPY prisma ./prisma
+  RUN npx prisma generate
+  
 
-# Generate Prisma client and build TypeScript
-RUN npx prisma generate
-RUN npm run build
+  RUN npm run build
+  
 
-# Remove dev dependencies after build (but keep prisma for migrations)
-RUN npm prune --production
-RUN npm install prisma --save
+  RUN npm ci --omit=dev
+  
+  
 
-# Copy and setup startup script (before switching to non-root user)
-COPY docker-startup.sh /app/docker-startup.sh
-RUN chmod +x /app/docker-startup.sh
+  FROM node:18-slim AS runtime
+  ENV NODE_ENV=production
+  WORKDIR /app
+  
 
-# Create non-root user for security (Debian syntax)
-RUN groupadd --gid 1001 nodejs
-RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nodejs
+  RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates openssl libc6 libstdc++6 libgomp1 \
+   && rm -rf /var/lib/apt/lists/*
 
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+  COPY --from=builder /app/node_modules ./node_modules
+  COPY --from=builder /app/dist ./dist
+  COPY --from=builder /app/prisma ./prisma
+  
 
-# Expose port
-EXPOSE 3000
+  COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  
+  EXPOSE 3000
+  
 
-# Start the application with full database setup
-CMD ["/app/docker-startup.sh"]
+  HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', r => process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+  
+  CMD ["node", "dist/index.js"]
+  

@@ -2,10 +2,10 @@ import type { CSSProperties } from "react";
 
 export type Applicant = {
   id?: number;
-  firstname: string;
-  surname: string;
-  phone_number?: string;
-  email_address: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  emailAddress: string;
 };
 
 export default function ApplicantForm({
@@ -21,10 +21,10 @@ export default function ApplicantForm({
 
   function defaults(): Applicant {
     return {
-      firstname: "",
-      surname: "",
-      phone_number: "",
-      email_address: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      emailAddress: "",
     };
   }
 
@@ -33,10 +33,10 @@ export default function ApplicantForm({
     const fd = new FormData(e.currentTarget);
     const payload: Applicant = {
       id: v.id,
-      firstname: String(fd.get('firstname') || ''),
-      surname: String(fd.get('surname') || ''),
-      phone_number: String(fd.get('phone_number') || ''),
-      email_address: String(fd.get('email_address') || ''),
+      firstName: String(fd.get('firstname') || ''),
+      lastName: String(fd.get('lastname') || ''),
+      phoneNumber: String(fd.get('phoneNumber') || ''),
+      emailAddress: String(fd.get('emailAddress') || ''),
     };
     onSubmit(payload);
   }
@@ -52,21 +52,21 @@ export default function ApplicantForm({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div style={field}>
           <label style={label}>First name *</label>
-          <input name="firstname" defaultValue={v.firstname} style={input} required maxLength={255} />
+          <input name="firstname" defaultValue={v.firstName} style={input} required maxLength={255} />
         </div>
         <div style={field}>
           <label style={label}>Surname *</label>
-          <input name="surname" defaultValue={v.surname} style={input} required maxLength={255} />
+          <input name="lastname" defaultValue={v.lastName} style={input} required maxLength={255} />
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div style={field}>
           <label style={label}>Phone</label>
-          <input name="phone_number" defaultValue={v.phone_number} style={input} maxLength={50} />
+          <input name="phoneNumber" defaultValue={v.phoneNumber} style={input} maxLength={50} />
         </div>
         <div style={field}>
           <label style={label}>Email *</label>
-          <input name="email_address" defaultValue={v.email_address} style={input} required maxLength={255} type="email" />
+          <input name="emailAddress" defaultValue={v.emailAddress} style={input} required maxLength={255} type="email" />
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
