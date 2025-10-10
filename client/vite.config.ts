@@ -42,7 +42,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
-            transformers: ['@xenova/transformers'],
           },
         },
       },

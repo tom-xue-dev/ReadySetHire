@@ -2,7 +2,7 @@ import { useI18n } from '../contexts/I18nContext';
 import { LanguageSwitcher } from '../contexts/I18nContext';
 
 export default function Settings() {
-  const { t, language, setLanguage } = useI18n();
+  const { t, language } = useI18n();
 
   return (
     <div style={containerStyle}>

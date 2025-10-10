@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useLocation, Link } from "react-router-dom";
-import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon, FunnelIcon, ArrowDownTrayIcon, UserPlusIcon, PlayIcon, EyeIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, TrashIcon, ArrowLeftIcon, PlusIcon,  UserPlusIcon, PlayIcon, EyeIcon } from "@heroicons/react/24/solid";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Modal from "../components/Modal";

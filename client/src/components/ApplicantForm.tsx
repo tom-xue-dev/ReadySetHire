@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 
 export type Applicant = {
@@ -46,7 +45,7 @@ export default function ApplicantForm({
   const label: CSSProperties = { fontSize: 13, color: '#374151' };
   const input: CSSProperties = { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6 };
 
-  const isEdit = Boolean(initial?.id);
+  // const isEdit = Boolean(initial?.id);
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12 }}>

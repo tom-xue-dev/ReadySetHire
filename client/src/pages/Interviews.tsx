@@ -38,8 +38,8 @@ function StatusBadge({ value }: { value: Interview["status"] }) {
 
 export default function Interviews() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setLoading] = useState(false);
+  const [, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Interview[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState<Interview | null>(null);
@@ -48,7 +48,7 @@ export default function Interviews() {
   // NEW: local UI states (search/filter/sort)
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<Status>("ALL");
-  const [sort, setSort] = useState<{ key: keyof Interview | "updatedAt" | "id"; dir: "asc" | "desc" }>({ key: "id", dir: "asc" });
+  const [sort] = useState<{ key: keyof Interview | "updatedAt" | "id"; dir: "asc" | "desc" }>({ key: "id", dir: "asc" });
 
   async function load() {
     setLoading(true);

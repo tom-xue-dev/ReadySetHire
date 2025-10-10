@@ -4,7 +4,7 @@ import type { Column } from "../components/DataTable";
 import Modal from "../components/Modal";
 import ApplicantForm from "../components/ApplicantForm";
 import type { Applicant as FormApplicant } from "../components/ApplicantForm";
-import { PencilIcon, TrashIcon, PlusIcon, LinkIcon } from "@heroicons/react/24/solid";
+  import { PencilIcon, TrashIcon, LinkIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../contexts/AuthContext";
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from "../components/SimpleConnectionStatus";
 // @ts-ignore JS helper
@@ -343,14 +343,3 @@ export default function ApplicantPage() {
 }
 
 const iconBtn: React.CSSProperties = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 2 };
-const btnPrimary: React.CSSProperties = { 
-  padding: '8px 12px', 
-  borderRadius: 6, 
-  border: '1px solid #2563eb', 
-  background: '#2563eb', 
-  color: '#fff', 
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  gap: 4
-};

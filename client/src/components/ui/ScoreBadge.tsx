@@ -1,4 +1,3 @@
-import React from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
 function bandColor(score: number) {
