@@ -26,6 +26,9 @@ import ResumeManagement from "./pages/ResumeManagement.tsx";
 import PublicJobApplication from "./pages/PublicJobApplication.tsx";
 import ApplicationTracker from "./pages/ApplicationTracker.tsx";
 import ApplicationManagement from "./pages/ApplicationManagement.tsx";
+import Subscription from "./pages/Subscription.tsx";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess.tsx";
+import SubscriptionCancel from "./pages/SubscriptionCancel.tsx";
 
 function AppContent() {
   const { showAuthNotification, hideAuthNotification } = useAuth();
@@ -74,6 +77,9 @@ function AppContent() {
                   <Route path="/resume-assessment" element={<ResumeAssessment />} />
                   <Route path="/resume-management" element={<ResumeManagement />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/subscription" element={<Subscription />} />
+                  <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+                  <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
                   <Route path="*" element={<Default />} />
                 </Routes>
               </Layout>

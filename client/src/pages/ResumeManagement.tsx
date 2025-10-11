@@ -1,74 +1,45 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon, XMarkIcon, DocumentTextIcon, ChartBarIcon, ArrowDownTrayIcon, PlusIcon, ArrowsUpDownIcon, CheckCircleIcon, TrashIcon, EnvelopeIcon, TagIcon, UserGroupIcon, DocumentArrowUpIcon } from '@heroicons/react/24/outline';
 import Button from '../components/ui/Button';
 import Chip from '../components/ui/Chip';
 import Card from '../components/ui/Card';
 import ScoreBadge from '../components/ui/ScoreBadge';
 import { useFilteredCandidates, useSortedCandidates, type Candidate } from '../hooks/useCandidates';
+// @ts-ignore JS helper
+import { getAllApplications, downloadResume} from '../api/helper.js';
 
-// Mock candidate data
-const MOCK_CANDIDATES: Candidate[] = [
-  {
-    id: 'c_001',
-    name: 'Alice Johnson',
-    email: 'alice.j@example.com',
-    phone: '+61 412 345 678',
-    role: 'Frontend Engineer',
-    source: 'LinkedIn',
-    experience: 3,
-    location: 'Brisbane',
-    tags: ['React', 'TypeScript', 'Tailwind'],
-    updatedAt: '2025-09-20',
-    score: 86,
-    rationale: 'Strong overlap with JD: React + TS + testing. Missing SSR experience.',
-    status: 'New',
-  },
-  {
-    id: 'c_002',
-    name: 'Wei Chen',
-    email: 'wei.chen@example.com',
-    phone: '+61 430 000 111',
-    role: 'Fullstack Engineer',
-    source: 'Referral',
-    experience: 5,
-    location: 'Sydney',
-    tags: ['Node.js', 'PostgreSQL', 'React'],
-    updatedAt: '2025-09-22',
-    score: 73,
-    rationale: 'Good backend depth; frontend acceptable; lacks design system experience.',
-    status: 'Screening',
-  },
-  {
-    id: 'c_003',
-    name: 'Priya Patel',
-    email: 'priya.p@example.com',
-    phone: '+61 450 777 888',
-    role: 'Frontend Engineer',
-    source: 'Careers Page',
-    experience: 4,
-    location: 'Melbourne',
-    tags: ['React', 'Jest', 'Accessibility'],
-    updatedAt: '2025-09-18',
-    score: 92,
-    rationale: 'Excellent match incl. a11y, testing, performance. Great portfolio.',
-    status: 'Shortlisted',
-  },
-  {
-    id: 'c_004',
-    name: 'Liam Smith',
-    email: 'liam.smith@example.com',
-    phone: '+61 498 333 222',
-    role: 'Frontend Engineer',
-    source: 'Indeed',
-    experience: 2,
-    location: 'Brisbane',
-    tags: ['Vue', 'React'],
-    updatedAt: '2025-09-12',
-    score: 58,
-    rationale: 'Entry-level; needs mentorship; some React exposure via side projects.',
-    status: 'New',
-  },
-];
+
+// Map backend status to user-friendly label
+function formatStatus(s: string) {
+  return s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+// Transform server application to Candidate view model
+function toCandidate(app: any): Candidate {
+  const name = `${app.firstName} ${app.lastName}`.trim();
+  const role = app.job?.title || 'N/A';
+  const tags: string[] = [];
+  const experience = app.yearsExperience || 0;
+  const location = app.job?.location || '—';
+  const updatedAt = (app.updatedAt || app.createdAt || new Date().toISOString()).toString();
+  const score = 0; // Placeholder until scoring implemented
+  const rationale = app.coverLetter || '—';
+  return {
+    id: String(app.id),
+    name,
+    email: app.email,
+    phone: app.phone || '',
+    role,
+    source: app.source || 'website',
+    experience,
+    location,
+    tags,
+    updatedAt,
+    score,
+    rationale,
+    status: formatStatus(app.status || 'SUBMITTED'),
+  };
+}
 
 function TagList({ tags }: { tags: string[] }) {
   return (
@@ -182,9 +153,52 @@ export default function ResumeManagement() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [detail, setDetail] = useState<Candidate | null>(null);
   const [sortBy, setSortBy] = useState<{ key: 'updatedAt' | 'score' | 'name'; dir: 'asc' | 'desc' }>({ key: 'updatedAt', dir: 'desc' });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [apps, setApps] = useState<any[]>([]);
 
-  const filtered = useFilteredCandidates(MOCK_CANDIDATES, q, role, minScore);
+  // Load applications (all jobs, paginated)
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getAllApplications({ limit: 100 });
+        const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.applications) ? res.applications : []);
+        if (mounted) setApps(data);
+      } catch (e: any) {
+        if (mounted) setError(e?.message || 'Failed to load applications');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const candidates: Candidate[] = useMemo(() => apps.map(toCandidate), [apps]);
+
+  const filtered = useFilteredCandidates(candidates, q, role, minScore);
   const sorted = useSortedCandidates(filtered, sortBy.key, sortBy.dir);
+
+  // Compute simple pipeline buckets from application statuses
+  const pipeline = useMemo(() => {
+    const counts = {
+      new: 0,
+      screening: 0,
+      interview: 0,
+      offer: 0,
+    } as Record<string, number>;
+    for (const a of apps) {
+      const s = String(a.status || 'SUBMITTED');
+      if (s === 'SUBMITTED') counts.new++;
+      else if (s === 'UNDER_REVIEW' || s === 'SHORTLISTED') counts.screening++;
+      else if (s === 'INTERVIEW_SCHEDULED' || s === 'INTERVIEWED') counts.interview++;
+      else if (s === 'OFFER_EXTENDED' || s === 'HIRED') counts.offer++;
+    }
+    return counts;
+  }, [apps]);
 
   return (
     <section className="min-h-[60vh]">
@@ -261,10 +275,10 @@ export default function ResumeManagement() {
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2 text-gray-800"><ChartBarIcon className="w-4 h-4"/><h3 className="font-semibold">Pipeline</h3></div>
             <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between"><span>New</span><Chip>12</Chip></div>
-              <div className="flex items-center justify-between"><span>Screening</span><Chip>8</Chip></div>
-              <div className="flex items-center justify-between"><span>Interview</span><Chip color="yellow">5</Chip></div>
-              <div className="flex items-center justify-between"><span>Offer</span><Chip color="green">2</Chip></div>
+              <div className="flex items-center justify-between"><span>New</span><Chip>{pipeline.new}</Chip></div>
+              <div className="flex items-center justify-between"><span>Screening</span><Chip>{pipeline.screening}</Chip></div>
+              <div className="flex items-center justify-between"><span>Interview</span><Chip color="yellow">{pipeline.interview}</Chip></div>
+              <div className="flex items-center justify-between"><span>Offer</span><Chip color="green">{pipeline.offer}</Chip></div>
             </div>
           </Card>
         </aside>
@@ -297,7 +311,16 @@ export default function ResumeManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((c) => (
+                  {loading && (
+                    <tr><td className="px-4 py-6 text-gray-500" colSpan={7}>Loading applications…</td></tr>
+                  )}
+                  {error && !loading && (
+                    <tr><td className="px-4 py-6 text-red-600" colSpan={7}>Error: {error}</td></tr>
+                  )}
+                  {!loading && !error && sorted.length === 0 && (
+                    <tr><td className="px-4 py-6 text-gray-500" colSpan={7}>No applications found.</td></tr>
+                  )}
+                  {!loading && !error && sorted.map((c) => (
                     <tr key={c.id} className="border-t hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -314,11 +337,17 @@ export default function ResumeManagement() {
                       <td className="px-4 py-3">{c.source}</td>
                       <td className="px-4 py-3"><ScoreBadge score={c.score} /></td>
                       <td className="px-4 py-3"><TagList tags={c.tags} /></td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{c.updatedAt}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{new Date(c.updatedAt).toLocaleString()}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Button variant="outline" onClick={() => setDetail(c)}>View</Button>
                           <Button variant="primary">Review</Button>
+                          <Button variant="outline" onClick={() => {
+                            const app = apps.find(a => String(a.id) === c.id);
+                            if (app?.resume?.id) { downloadResume(app.resume.id); }
+                          }}>
+                            <ArrowDownTrayIcon className="w-4 h-4 mr-1"/> Resume
+                          </Button>
                         </div>
                       </td>
                     </tr>

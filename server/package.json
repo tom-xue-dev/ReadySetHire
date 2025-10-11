@@ -52,6 +52,7 @@
     "openai-whisper": "^1.0.2",
     "pdf-parse": "^1.1.1",
     "pg": "^8.11.3",
+    "stripe": "^19.1.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.0.5",
     "yaml": "^2.5.1"

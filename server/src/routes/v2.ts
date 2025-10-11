@@ -6,6 +6,7 @@ import { jobService, interviewService, questionService, applicantService, applic
 import { whisperService } from '../services/whisper';
 import { llmService } from '../services/llm';
 import jobApplicationRoutes from './jobApplication.routes';
+import billingRoutes from './billing.routes';
 export function createRoutes() {
   const router = Router();
 
@@ -122,6 +123,9 @@ export function createRoutes() {
 
   // Job Application routes (includes public endpoints)
   router.use('/', jobApplicationRoutes);
+
+  // Billing routes
+  router.use('/billing', billingRoutes);
 
   return router;
 }

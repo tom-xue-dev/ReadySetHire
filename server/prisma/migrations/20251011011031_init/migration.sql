@@ -8,10 +8,13 @@ CREATE TYPE "public"."JobStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CLOSED');
 CREATE TYPE "public"."InterviewStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED', 'NOT_STARTED', 'COMPLETED');
 
 -- CreateEnum
+CREATE TYPE "public"."Title" AS ENUM ('MR', 'MS', 'DR');
+
+-- CreateEnum
 CREATE TYPE "public"."Difficulty" AS ENUM ('EASY', 'INTERMEDIATE', 'ADVANCED');
 
 -- CreateEnum
-CREATE TYPE "public"."Title" AS ENUM ('MR', 'MS', 'DR');
+CREATE TYPE "public"."ApplicationStatus" AS ENUM ('SUBMITTED', 'UNDER_REVIEW', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'INTERVIEWED', 'OFFER_EXTENDED', 'HIRED', 'REJECTED', 'WITHDRAWN');
 
 -- CreateTable
 CREATE TABLE "public"."users" (
@@ -77,7 +80,6 @@ CREATE TABLE "public"."questions" (
 CREATE TABLE "public"."applicants" (
     "id" SERIAL NOT NULL,
     "interview_id" INTEGER,
-    "title" "public"."Title" NOT NULL,
     "firstname" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
     "phone_number" TEXT,
@@ -104,13 +106,63 @@ CREATE TABLE "public"."applicant_answers" (
     CONSTRAINT "applicant_answers_pkey" PRIMARY KEY ("id")
 );
 
--- initiliaze user admin
+-- CreateTable
+CREATE TABLE "public"."job_applications" (
+    "id" SERIAL NOT NULL,
+    "job_id" INTEGER NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT,
+    "cover_letter" TEXT,
+    "linkedin_url" TEXT,
+    "portfolio_url" TEXT,
+    "years_experience" INTEGER,
+    "status" "public"."ApplicationStatus" NOT NULL DEFAULT 'SUBMITTED',
+    "resume_id" INTEGER,
+    "tracking_token" TEXT NOT NULL,
+    "source" TEXT DEFAULT 'website',
+    "notes" TEXT,
+    "reviewed_by" INTEGER,
+    "reviewed_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "job_applications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."resumes" (
+    "id" SERIAL NOT NULL,
+    "original_name" TEXT NOT NULL,
+    "file_name" TEXT NOT NULL,
+    "file_path" TEXT NOT NULL,
+    "file_size" INTEGER NOT NULL,
+    "mime_type" TEXT NOT NULL,
+    "extracted_text" TEXT,
+    "parsed_data" JSONB,
+    "uploaded_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "resumes_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_key" ON "public"."users"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "job_applications_tracking_token_key" ON "public"."job_applications"("tracking_token");
+
+-- CreateIndex
+CREATE INDEX "job_applications_job_id_status_idx" ON "public"."job_applications"("job_id", "status");
+
+-- CreateIndex
+CREATE INDEX "job_applications_email_idx" ON "public"."job_applications"("email");
+
+-- CreateIndex
+CREATE INDEX "job_applications_tracking_token_idx" ON "public"."job_applications"("tracking_token");
 
 -- AddForeignKey
 ALTER TABLE "public"."jobs" ADD CONSTRAINT "jobs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -145,6 +197,8 @@ ALTER TABLE "public"."applicant_answers" ADD CONSTRAINT "applicant_answers_appli
 -- AddForeignKey
 ALTER TABLE "public"."applicant_answers" ADD CONSTRAINT "applicant_answers_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public"."applicants" ALTER COLUMN "interview_id" DROP NOT NULL;
+-- AddForeignKey
+ALTER TABLE "public"."job_applications" ADD CONSTRAINT "job_applications_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "public"."jobs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public"."applicants" DROP COLUMN "title";
+-- AddForeignKey
+ALTER TABLE "public"."job_applications" ADD CONSTRAINT "job_applications_resume_id_fkey" FOREIGN KEY ("resume_id") REFERENCES "public"."resumes"("id") ON DELETE SET NULL ON UPDATE CASCADE;

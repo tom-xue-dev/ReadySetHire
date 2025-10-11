@@ -394,6 +394,57 @@ export async function healthCheck() {
     }
 }
 
+// Billing APIs
+export async function createCheckoutSession() {
+    return apiRequest(`/billing/create-checkout-session`, 'POST', {});
+}
+
+// Applications APIs
+export async function getAllApplications(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.page) qs.set('page', String(params.page));
+    // if (params.limit) qs.set('limit', String(params.limit));
+    if (params.status) qs.set('status', String(params.status));
+    if (params.jobId) qs.set('jobId', String(params.jobId));
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return apiRequest(`/applications${suffix}`);
+}
+
+export async function getApplicationById(id) {
+    return apiRequest(`/applications/${id}`);
+}
+
+export async function updateApplicationStatus(id, status, notes = '') {
+    return apiRequest(`/applications/${id}/status`, 'PATCH', { status, notes });
+}
+
+export async function downloadResume(resumeId) {
+    const token = localStorage.getItem('token') || '';
+    const res = await fetch(`${API_BASE_URL}/resumes/${resumeId}/download`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Failed to download resume (${res.status}): ${text}`);
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename="?([^";]+)"?/i);
+    const filename = match ? match[1] : `resume-${resumeId}`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    return { filename };
+}
+
 /**
  * Main function to demonstrate API usage.
  *
