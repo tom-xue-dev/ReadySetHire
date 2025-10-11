@@ -147,8 +147,7 @@ export default function ApplicationManagement() {
 
   const columns = [
     {
-      key: 'name',
-      label: 'Candidate',
+      header: 'Candidate',
       render: (app: Application) => (
         <div>
           <div className="font-semibold text-gray-900">
@@ -159,19 +158,16 @@ export default function ApplicationManagement() {
       ),
     },
     {
-      key: 'phone',
-      label: 'Phone',
+      header: 'Phone',
       render: (app: Application) => app.phone || '—',
     },
     {
-      key: 'experience',
-      label: 'Experience',
+      header: 'Experience',
       render: (app: Application) => 
         app.yearsExperience ? `${app.yearsExperience} years` : '—',
     },
     {
-      key: 'status',
-      label: 'Status',
+      header: 'Status',
       render: (app: Application) => (
         <select
           value={app.status}
@@ -187,13 +183,11 @@ export default function ApplicationManagement() {
       ),
     },
     {
-      key: 'applied',
-      label: 'Applied',
+      header: 'Applied',
       render: (app: Application) => new Date(app.createdAt).toLocaleDateString(),
     },
     {
-      key: 'actions',
-      label: 'Actions',
+      header: 'Actions',
       render: (app: Application) => (
         <div className="flex gap-2">
           {app.resume && (
@@ -337,6 +331,7 @@ export default function ApplicationManagement() {
           <DataTable
             data={filteredApplications}
             columns={columns}
+            rowKey={(row: Application) => row.id}
           />
         )}
       </div>

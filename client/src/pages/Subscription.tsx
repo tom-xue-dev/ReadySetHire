@@ -1,9 +1,9 @@
 import { useState } from 'react';
+// @ts-ignore JS helper
 import { createCheckoutSession } from '../api/helper.js';
-import { useI18n } from '../contexts/I18nContext';
+// import { useI18n } from '../contexts/I18nContext';
 
 export default function Subscription() {
-  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

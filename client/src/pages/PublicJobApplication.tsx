@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useI18n } from '../contexts/I18nContext';
+// import { useI18n } from '../contexts/I18nContext';
 
 interface Job {
   id: number;
@@ -27,7 +27,7 @@ interface ApplicationForm {
 export default function PublicJobApplication() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
-  const { t } = useI18n();
+  // const { t } = useI18n();
   
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
