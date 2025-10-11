@@ -115,191 +115,115 @@ export default function HRDashboard() {
     }
   }
 
+  const brand = {
+    bgGradient: 'bg-[radial-gradient(1200px_600px_at_70%_0%,rgba(99,91,255,0.12),rgba(255,255,255,0))]',
+    card: 'rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-sm shadow-sm',
+    btn: 'inline-flex items-center h-9 px-4 rounded-full bg-[#635bff] text-white font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#635bff]/30 transition',
+    btnGhost: 'inline-flex items-center h-9 px-4 rounded-full border border-[#635bff]/30 text-[#635bff] bg-white hover:bg-[#635bff]/5 focus:outline-none focus:ring-2 focus:ring-[#635bff]/20 transition',
+  } as const;
+
   const StatCard = ({ title, value, icon, color }: {
     title: string;
     value: number;
     icon: string;
     color: string;
   }) => (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-      border: '1px solid #e5e7eb'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div className={`${brand.card} p-5`}>
+      <div className="flex items-center justify-between">
         <div>
-          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#6b7280' }}>
-            {title}
-          </p>
-          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: color }}>
-            {value}
-          </p>
+          <p className="m-0 text-sm text-slate-600">{title}</p>
+          <p className="m-0 text-3xl font-bold" style={{ color }}>{value}</p>
         </div>
-        <div style={{ fontSize: '32px' }}>
-          {icon}
-        </div>
+        <div className="text-3xl">{icon}</div>
       </div>
     </div>
   );
 
   const InterviewCard = ({ interview }: { interview: InterviewWithStats }) => (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '8px',
-      padding: '16px',
-      border: '1px solid #e5e7eb',
-      transition: 'box-shadow 0.2s'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
-          {interview.title}
-        </h3>
-        <span style={{
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          fontWeight: '500',
-          backgroundColor: interview.status === 'PUBLISHED' ? '#dcfce7' : '#fef3c7',
-          color: interview.status === 'PUBLISHED' ? '#166534' : '#92400e'
-        }}>
+    <div className={`${brand.card} p-4`}>
+      <div className="flex items-start justify-between mb-1">
+        <h3 className="m-0 text-base font-semibold text-slate-900">{interview.title}</h3>
+        <span className={`px-2 py-1 rounded text-xs font-medium ${interview.status === 'PUBLISHED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
           {interview.status}
         </span>
       </div>
-      
-      <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#6b7280' }}>
-        {interview.jobRole}
-      </p>
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#6b7280' }}>
+      <p className="mt-1 mb-3 text-sm text-slate-600">{interview.jobRole}</p>
+      <div className="flex items-center justify-between text-sm text-slate-600">
         <span>👥 {interview.applicantCount} applicants</span>
         <span>✅ {interview.completedCount} completed</span>
       </div>
-      
-      <div style={{ marginTop: '8px', fontSize: '12px', color: '#9ca3af' }}>
-        Created: {new Date(interview.createdAt).toLocaleDateString()}
-      </div>
+      <div className="mt-2 text-xs text-slate-400">Created: {new Date(interview.createdAt).toLocaleDateString()}</div>
     </div>
   );
 
   return (
     <SimpleConnectionGuard>
-      <div style={{ padding: '24px' }}>
+      <div className={`p-6 ${brand.bgGradient}`}>
         {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1f2937' }}>
-              HR Dashboard
-            </h1>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="m-0 text-2xl font-bold text-slate-900">HR Dashboard</h1>
             <SimpleConnectionIndicator />
           </div>
-          <p style={{ margin: 0, fontSize: '16px', color: '#6b7280' }}>
-            Welcome back, {user?.firstName || user?.username}! Here's your hiring overview.
-          </p>
+          <p className="m-0 text-slate-600">Welcome back, {user?.firstName || user?.username}! Here's your hiring overview.</p>
         </div>
 
         {error && (
-          <div style={{
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#dc2626',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '24px'
-          }}>
+          <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 p-4">
             Error: {error}
           </div>
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <div style={{ fontSize: '18px', color: '#6b7280' }}>Loading dashboard...</div>
-          </div>
+          <div className="text-center py-10 text-slate-600">Loading dashboard...</div>
         ) : (
           <>
-            {/* Stats Cards */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '24px',
-              marginBottom: '32px'
-            }}>
-              <StatCard
-                title="Total Interviews"
-                value={stats.totalInterviews}
-                icon="🎯"
-                color="#3b82f6"
-              />
-              <StatCard
-                title="Published Interviews"
-                value={stats.publishedInterviews}
-                icon="📢"
-                color="#10b981"
-              />
-              <StatCard
-                title="Total Applicants"
-                value={stats.totalApplicants}
-                icon="👥"
-                color="#f59e0b"
-              />
-              <StatCard
-                title="Completed Interviews"
-                value={stats.completedInterviews}
-                icon="✅"
-                color="#8b5cf6"
-              />
+            {/* Stat grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <StatCard title="Total Interviews" value={stats.totalInterviews} icon="🎯" color="#3b82f6" />
+              <StatCard title="Published Interviews" value={stats.publishedInterviews} icon="📢" color="#10b981" />
+              <StatCard title="Total Applicants" value={stats.totalApplicants} icon="👥" color="#f59e0b" />
+              <StatCard title="Completed" value={stats.completedInterviews} icon="✅" color="#8b5cf6" />
             </div>
 
-            {/* Recent Interviews */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#1f2937' }}>
-                  Recent Interviews
-                </h2>
-                <button
-                  onClick={() => window.location.href = '/interviews'}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  View All
-                </button>
+            {/* Content grid */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className={`${brand.card} p-6`}>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-slate-900 m-0">Recent Interviews</h3>
+                    <button className={brand.btnGhost} onClick={() => (window.location.href = '/interviews')}>View all</button>
+                  </div>
+                  <div className="mt-4">
+                    {recentInterviews.length === 0 ? (
+                      <div className="grid place-items-center py-12 text-center">
+                        <div className="h-14 w-14 rounded-2xl bg-[#635bff]/10 grid place-items-center text-3xl">🎯</div>
+                        <h4 className="mt-4 text-lg font-semibold text-slate-900">No interviews yet</h4>
+                        <p className="mt-1 text-sm text-slate-600 max-w-md">Create your first interview to get started. Your interviews will appear here once published.</p>
+                        <div className="mt-4">
+                          <button className={brand.btn} onClick={() => (window.location.href = '/interviews')}>Create interview</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {recentInterviews.map((interview) => (
+                          <InterviewCard key={interview.id} interview={interview} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              
-              {recentInterviews.length === 0 ? (
-                <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  padding: '40px',
-                  textAlign: 'center',
-                  border: '1px solid #e5e7eb'
-                }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#1f2937' }}>
-                    No interviews yet
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
-                    Create your first interview to get started
-                  </p>
-                </div>
-              ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                  gap: '16px'
-                }}>
-                  {recentInterviews.map((interview) => (
-                    <InterviewCard key={interview.id} interview={interview} />
-                  ))}
-                </div>
-              )}
+
+              <div className={`${brand.card} p-6`}>
+                <h3 className="text-base font-semibold text-slate-900 m-0">How it works</h3>
+                <ol className="mt-4 space-y-3 text-sm text-slate-700">
+                  <li className="flex items-start gap-3"><span className="mt-1 h-6 w-6 shrink-0 rounded-full bg-[#635bff]/10 text-[#635bff] grid place-items-center text-xs font-semibold">1</span><div><b>Create an interview</b> – choose question templates or write your own.</div></li>
+                  <li className="flex items-start gap-3"><span className="mt-1 h-6 w-6 shrink-0 rounded-full bg-[#635bff]/10 text-[#635bff] grid place-items-center text-xs font-semibold">2</span><div><b>Publish & invite</b> – candidates answer by voice, securely stored.</div></li>
+                  <li className="flex items-start gap-3"><span className="mt-1 h-6 w-6 shrink-0 rounded-full bg-[#635bff]/10 text-[#635bff] grid place-items-center text-xs font-semibold">3</span><div><b>Auto‑transcribe & score</b> – AI extracts key skills against your JD.</div></li>
+                  <li className="flex items-start gap-3"><span className="mt-1 h-6 w-6 shrink-0 rounded-full bg-[#635bff]/10 text-[#635bff] grid place-items-center text-xs font-semibold">4</span><div><b>Share insights</b> – collaborate with your team and move faster.</div></li>
+                </ol>
+              </div>
             </div>
           </>
         )}

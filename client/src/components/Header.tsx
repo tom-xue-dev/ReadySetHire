@@ -57,11 +57,11 @@ export default function Header({ sidebarOpen = false, onToggle }: HeaderProps) {
   }, []);
   
   return (
-    <header ref={headerRef} className = "p-[16px] top-0 sticky relative z-50" style = {{backgroundColor: 'gray'}}>
+    <header ref={headerRef} className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/70 backdrop-blur-md p-[16px]">
       {/* Static toggle button, above sidebar */}
       <button
         onClick={onToggle}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-[100] p-2 bg-transparent border-0 text-white cursor-pointer rounded-lg hover:bg-gray-700 focus:outline-none"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-[100] p-2 bg-transparent border-0 text-slate-700 cursor-pointer rounded-xl hover:bg-slate-100 focus:outline-none"
         aria-label="Toggle sidebar"
         title={sidebarOpen ? 'Close Menu' : 'Open Menu'}
       >
@@ -73,7 +73,7 @@ export default function Header({ sidebarOpen = false, onToggle }: HeaderProps) {
             <img src={logo} style={{ height: 40, width: 'auto' }} className="block object-contain" />
           </button>
         </div>
-        <span style={{marginLeft:"auto",marginRight: "20px"}}>
+        <span style={{marginLeft:"auto",marginRight: "20px", color: '#374151'}}>
           {t('common.welcome')}, {user?.firstName || user?.username}
         </span>
         <div style={navItemsStyle}>
@@ -84,7 +84,7 @@ export default function Header({ sidebarOpen = false, onToggle }: HeaderProps) {
               className = "flex items-center gap-2 p-2 bg-transparent border-0 text-white cursor-pointer text-left"
               title={t('common.welcome')}
             >
-            <UserCircleIcon width={24} height={24} style={{ color: 'white' }} />
+            <UserCircleIcon width={24} height={24} style={{ color: '#374151' }} />
             </button>
             
             {isDropdownOpen && (
@@ -139,7 +139,7 @@ const brandTitleStyle: React.CSSProperties = {
   fontSize: '24px',
   fontWeight: 'bold',
   margin: 0,
-  color: 'white',
+  color: '#111827',
   background: 'none',
   border: 'none',
   cursor: 'pointer',

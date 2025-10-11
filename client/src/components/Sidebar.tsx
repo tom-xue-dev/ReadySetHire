@@ -38,18 +38,20 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           left: 0,
           height: '100vh',
           width: isOpen ? '280px' : '70px',
-          backgroundColor: '#1f2937',
+          backgroundColor: '#ffffff',
           transition: 'width 0.3s ease',
           overflow: 'hidden',
           zIndex: 50,
           display: 'flex',
           flexDirection: 'column',
+          borderRight: '1px solid #e5e7eb',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
         }}
       >
         <div className="p-[16px] flex items-center gap-3">
           <button
             onClick={onToggle}
-            className="bg-transparent border-0 text-white cursor-pointer p-[10px] rounded flex items-center justify-center hover:bg-[#374151]"
+            className="bg-transparent border-0 text-slate-700 cursor-pointer p-[10px] rounded-xl flex items-center justify-center hover:bg-slate-100"
             title={isOpen ? t('common.closeMenu') : t('common.openMenu')}
           >
             <Bars3Icon width={20} height={20} />
@@ -66,22 +68,16 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     navigate(item.path);
                     onToggle();
                   }}
-                  className={`w-full p-[12px] bg-transparent border-0 text-white cursor-pointer text-left flex items-center ${
+                  className={`w-full p-[12px] bg-transparent border-0 cursor-pointer text-left flex items-center ${
                     isOpen ? 'justify-start gap-[12px]' : 'justify-center'
-                  } text-[14px] transition-colors duration-200 rounded-[25px_25px_0_0] hover:bg-[#374151]`}
-                  onMouseEnter={(e) => {
-                    if (!isActive(item.path)) {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#374151';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive(item.path)) {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
-                    }
-                  }}
+                  } text-[14px] transition-colors duration-200 rounded-xl ${
+                    isActive(item.path)
+                      ? 'bg-[#635bff]/10 text-[#635bff]'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
                 >
                   <span className="text-[16px]">{item.icon}</span>
-                  {isOpen && <span style={{ color: 'white' }}>{item.label}</span>}
+                  {isOpen && <span>{item.label}</span>}
                 </button>
               </li>
             ))}
