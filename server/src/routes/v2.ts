@@ -5,6 +5,7 @@ import { JobController, InterviewController, QuestionController, ApplicantContro
 import { jobService, interviewService, questionService, applicantService, applicantAnswerService } from '../services/database';
 import { whisperService } from '../services/whisper';
 import { llmService } from '../services/llm';
+import jobApplicationRoutes from './jobApplication.routes';
 export function createRoutes() {
   const router = Router();
 
@@ -118,6 +119,9 @@ export function createRoutes() {
     res.status(200).end();
   });
   router.post('/model/whisper', express.raw({ type: 'application/octet-stream' }),authenticateToken, audioController.transcribe.bind(audioController));
+
+  // Job Application routes (includes public endpoints)
+  router.use('/', jobApplicationRoutes);
 
   return router;
 }

@@ -23,6 +23,9 @@ import InterviewThanks from "./pages/InterviewThanks.tsx";
 import Home from "./pages/Home.tsx";
 import Settings from "./pages/Settings.tsx";
 import ResumeManagement from "./pages/ResumeManagement.tsx";
+import PublicJobApplication from "./pages/PublicJobApplication.tsx";
+import ApplicationTracker from "./pages/ApplicationTracker.tsx";
+import ApplicationManagement from "./pages/ApplicationManagement.tsx";
 
 function AppContent() {
   const { showAuthNotification, hideAuthNotification } = useAuth();
@@ -42,6 +45,10 @@ function AppContent() {
               <Home />
             </ConditionalRoute>
           } />
+          {/* Public job application routes */}
+          <Route path="/jobs/:jobId/apply" element={<PublicJobApplication />} />
+          <Route path="/track/:token" element={<ApplicationTracker />} />
+          <Route path="/track" element={<ApplicationTracker />} />
           {/* Protected routes */}
           <Route path="/*" element={
             <ProtectedRoute>
@@ -50,6 +57,7 @@ function AppContent() {
                   <Route path="/dashboard" element={<HRDashboard />} />
                   {/* Database-dependent routes with connection checking */}
                   <Route path="/jobs" element={<Jobs />} />
+                  <Route path="/jobs/:jobId/applications" element={<ApplicationManagement />} />
                   <Route path="/interviews" element={<Interviews />} />
                   <Route path="/interviews/:interviewId/applicants" element={<Applicant />} />
                   <Route path="/interviews/:interviewId/questions" element={<Questions />} />

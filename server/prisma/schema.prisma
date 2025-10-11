@@ -49,8 +49,9 @@ model Job {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  interviews Interview[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviews      Interview[]
+  jobApplications JobApplication[]
 
   @@map("jobs")
 }
@@ -165,4 +166,65 @@ enum Difficulty {
   EASY
   INTERMEDIATE
   ADVANCED
+}
+
+// Job Application and Resume Models
+model JobApplication {
+  id              Int                  @id @default(autoincrement())
+  jobId           Int                  @map("job_id")
+  firstName       String               @map("first_name")
+  lastName        String               @map("last_name")
+  email           String
+  phone           String?
+  coverLetter     String?              @map("cover_letter")
+  linkedinUrl     String?              @map("linkedin_url")
+  portfolioUrl    String?              @map("portfolio_url")
+  yearsExperience Int?                 @map("years_experience")
+  status          ApplicationStatus    @default(SUBMITTED)
+  resumeId        Int?                 @map("resume_id")
+  trackingToken   String               @unique @map("tracking_token") // For public status checking
+  source          String?              @default("website") // where the application came from
+  notes           String?              // Internal notes from recruiter
+  reviewedBy      Int?                 @map("reviewed_by")
+  reviewedAt      DateTime?            @map("reviewed_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, status])
+  @@index([email])
+  @@index([trackingToken])
+  @@map("job_applications")
+}
+
+model Resume {
+  id              Int              @id @default(autoincrement())
+  originalName    String           @map("original_name")
+  fileName        String           @map("file_name")          // Stored file name
+  filePath        String           @map("file_path")          // Storage path
+  fileSize        Int              @map("file_size")          // In bytes
+  mimeType        String           @map("mime_type")
+  extractedText   String?          @map("extracted_text")     // Parsed text content
+  parsedData      Json?            @map("parsed_data")        // Structured data (skills, experience, etc.)
+  uploadedAt      DateTime         @default(now()) @map("uploaded_at")
+  
+  // Relations
+  applications JobApplication[]
+
+  @@map("resumes")
+}
+
+enum ApplicationStatus {
+  SUBMITTED       // Initial submission
+  UNDER_REVIEW    // Being reviewed by recruiter
+  SHORTLISTED     // Passed initial screening
+  INTERVIEW_SCHEDULED  // Interview scheduled
+  INTERVIEWED     // Interview completed
+  OFFER_EXTENDED  // Job offer sent
+  HIRED           // Accepted offer
+  REJECTED        // Application rejected
+  WITHDRAWN       // Candidate withdrew
 }

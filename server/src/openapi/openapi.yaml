@@ -56,6 +56,31 @@ paths:
           schema: { type: integer }
       responses:
         '200': { description: OK }
+  /jobs/{jobId}/apply:
+    post:
+      summary: Submit job application
+      description: Public endpoint to submit a job application with optional resume upload.
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JobApplicationSubmission'
+      responses:
+        '201':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationCreated'
+        '400': { description: Bad Request }
+        '409': { description: Conflict (duplicate application) }
+        '500': { description: Internal Server Error }
     patch:
       summary: Update job
       security: [{ bearerAuth: [] }]
@@ -309,6 +334,23 @@ paths:
           schema: { type: integer }
       responses:
         '204': { description: Deleted }
+  /applications/track/{token}:
+    get:
+      summary: Track application status by token
+      description: Public endpoint to get the current status of an application by tracking token.
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationPublicStatus'
+        '404': { description: Not Found }
 components:
   securitySchemes:
     bearerAuth:
@@ -323,11 +365,52 @@ components:
         description: { type: string }
         requirements: { type: string }
         location: { type: string }
-        salary: { type: string }
+        salaryRange: { type: string }
         status: { type: string, enum: [DRAFT, PUBLISHED, ARCHIVED, CLOSED] }
         company: { type: string }
         department: { type: string }
       required: [title, description, status]
+    JobApplicationSubmission:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        coverLetter: { type: string }
+        linkedinUrl: { type: string, format: uri }
+        portfolioUrl: { type: string, format: uri }
+        yearsExperience: { type: integer, minimum: 0 }
+        resume:
+          type: string
+          format: binary
+      required: [firstName, lastName, email]
+    JobApplicationCreated:
+      type: object
+      properties:
+        message: { type: string }
+        trackingToken: { type: string }
+        application:
+          type: object
+          properties:
+            id: { type: integer }
+            jobTitle: { type: string }
+            status: { type: string, enum: [SUBMITTED, UNDER_REVIEW, SHORTLISTED, INTERVIEW_SCHEDULED, INTERVIEWED, OFFER_EXTENDED, HIRED, REJECTED, WITHDRAWN] }
+            submittedAt: { type: string, format: date-time }
+      required: [trackingToken]
+    ApplicationPublicStatus:
+      type: object
+      properties:
+        success: { type: boolean }
+        application:
+          type: object
+          properties:
+            id: { type: integer }
+            jobTitle: { type: string }
+            applicantName: { type: string }
+            status: { type: string, enum: [SUBMITTED, UNDER_REVIEW, SHORTLISTED, INTERVIEW_SCHEDULED, INTERVIEWED, OFFER_EXTENDED, HIRED, REJECTED, WITHDRAWN] }
+            submittedAt: { type: string, format: date-time }
+            lastUpdated: { type: string, format: date-time }
     Interview:
       type: object
       properties:
