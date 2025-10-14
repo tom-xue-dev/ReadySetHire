@@ -24,6 +24,7 @@ import Home from "./pages/Home.tsx";
 import Settings from "./pages/Settings.tsx";
 import ResumeManagement from "./pages/ResumeManagement.tsx";
 import PublicJobApplication from "./pages/PublicJobApplication.tsx";
+import PublicJobDetails from "./pages/PublicJobDetails.tsx";
 import ApplicationTracker from "./pages/ApplicationTracker.tsx";
 import ApplicationManagement from "./pages/ApplicationManagement.tsx";
 import Subscription from "./pages/Subscription.tsx";
@@ -48,7 +49,8 @@ function AppContent() {
               <Home />
             </ConditionalRoute>
           } />
-          {/* Public job application routes */}
+          {/* Public job details and application routes */}
+          <Route path="/jobs/:jobId" element={<PublicJobDetails />} />
           <Route path="/jobs/:jobId/apply" element={<PublicJobApplication />} />
           <Route path="/track/:token" element={<ApplicationTracker />} />
           <Route path="/track" element={<ApplicationTracker />} />

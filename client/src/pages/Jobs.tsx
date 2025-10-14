@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'; 
 import { SimpleConnectionIndicator, SimpleConnectionGuard } from '../components/SimpleConnectionStatus';
+import PageShell from '../components/PageShell';
 import JobForm from '../components/JobForm';
 import type { Job } from '../types';
 import Modal from '../components/Modal';
 import { Drawer } from '../components/ui/Cards.tsx';
 // @ts-ignore JS helper
-import { getJobs, createJob, updateJob, deleteJob } from '../api/helper.js';
+import { getJobs, createJob, updateJob, deleteJob, publishJob } from '../api/helper.js';
 
 export default function Jobs() {
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,8 @@ export default function Jobs() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT' | 'ARCHIVED' | 'CLOSED'>('ALL');
   const [detailsJob, setDetailsJob] = useState<Job | null>(null);
+  const [shareJob, setShareJob] = useState<Job | null>(null);
+  const [copyMsg, setCopyMsg] = useState<string | null>(null);
 
   useEffect(() => {
     load();
@@ -48,6 +51,37 @@ export default function Jobs() {
       await load(); // Reload the list
     } catch (err: any) {
       setFormError(err?.message ?? 'Failed to save job');
+    }
+  }
+
+  async function handlePublish(job: Job) {
+    try {
+      if ((job.status as any) !== 'PUBLISHED' && job.id) {
+        await publishJob(job.id);
+        await load();
+      }
+      setShareJob(job);
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to publish job');
+    }
+  }
+
+  function getPublicLinks(jobId: number) {
+    const origin = window.location.origin;
+    return {
+      details: `${origin}/jobs/${jobId}`,
+      apply: `${origin}/jobs/${jobId}/apply`
+    };
+  }
+
+  async function copyToClipboard(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyMsg('Link copied');
+      setTimeout(() => setCopyMsg(null), 1500);
+    } catch (_e) {
+      setCopyMsg('Copy failed');
+      setTimeout(() => setCopyMsg(null), 1500);
     }
   }
 
@@ -88,24 +122,18 @@ export default function Jobs() {
 
   return (
     <SimpleConnectionGuard>
-      <div className="min-h-screen bg-zinc-50">
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold text-zinc-900">Jobs</h1>
-              <SimpleConnectionIndicator />
-            </div>
-            <div className="flex-1" />
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-xl shadow hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
-            >
-              New Job
-            </button>
-          </div>
-        </header>
-
-        <main className="max-w-7xl mx-auto p-4 grid grid-cols-12 gap-4">
+      <PageShell
+        title={<div className="flex items-center gap-2">Jobs <SimpleConnectionIndicator /></div>}
+        right={(
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-xl shadow hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600"
+          >
+            New Job
+          </button>
+        )}
+      >
+        <main className="p-4 grid grid-cols-12 gap-4">
           <aside className="col-span-12 md:col-span-3 space-y-4">
             <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
               <div className="text-sm text-zinc-600 mb-2">Filters</div>
@@ -173,6 +201,21 @@ export default function Jobs() {
                         <p className="text-sm text-zinc-700 line-clamp-3 mb-3">{job.description}</p>
                       )}
                       <div className="flex justify-end gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handlePublish(job); }}
+                          className={`px-2 py-1.5 rounded-lg border text-white ${ (job.status as any) === 'PUBLISHED' ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-600' : 'bg-indigo-600 hover:bg-indigo-700 border-indigo-600'}`}
+                          title={(job.status as any) === 'PUBLISHED' ? 'Share public link' : 'Publish and share'}
+                        >
+                          {(job.status as any) === 'PUBLISHED' ? 'Share' : 'Publish'}
+                        </button>
+                        {(job.status as any) === 'PUBLISHED' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); window.open(`/jobs/${job.id}`, '_blank'); }}
+                            className="px-2 py-1.5 rounded-lg border hover:bg-zinc-50"
+                          >
+                            View
+                          </button>
+                        )}
                         <button onClick={(e) => { e.stopPropagation(); handleEdit(job); }} className="px-2 py-1.5 rounded-lg border hover:bg-zinc-50">Edit</button>
                         <button onClick={(e) => { e.stopPropagation(); handleDelete(job.id!); }} className="px-2 py-1.5 rounded-lg border hover:bg-red-50 text-red-600 border-red-300">Delete</button>
                       </div>
@@ -207,6 +250,10 @@ export default function Jobs() {
           footer={detailsJob ? (
             <>
               <button onClick={() => { setDetailsJob(null); handleEdit(detailsJob); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">Edit</button>
+              <button onClick={() => { if (detailsJob?.id) handlePublish(detailsJob); }} className="rounded-lg border px-3 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700">{(detailsJob.status as any) === 'PUBLISHED' ? 'Share' : 'Publish'}</button>
+              {(detailsJob?.status as any) === 'PUBLISHED' && (
+                <button onClick={() => { if (detailsJob?.id) window.open(`/jobs/${detailsJob.id}`, '_blank'); }} className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">View</button>
+              )}
               {detailsJob?.id && (
                 <button onClick={() => { const id = detailsJob.id!; setDetailsJob(null); handleDelete(id); }} className="rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
               )}
@@ -244,7 +291,36 @@ export default function Jobs() {
             </div>
           )}
         </Drawer>
-      </div>
+
+        {shareJob && shareJob.id && (
+          <Modal open={!!shareJob} onClose={() => setShareJob(null)}>
+            <div style={{ padding: '24px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#111827' }}>Share your job</h3>
+              <p style={{ margin: '8px 0 16px 0', color: '#4b5563', fontSize: '14px' }}>Send candidates a public link to view details or apply.</p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-zinc-500 w-24">Details</div>
+                  <input readOnly value={getPublicLinks(shareJob.id).details} className="flex-1 px-3 py-2 rounded-lg border bg-zinc-50" />
+                  <button onClick={() => copyToClipboard(getPublicLinks(shareJob.id!).details)} className="px-3 py-2 rounded-lg border text-sm hover:bg-zinc-50">Copy</button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-zinc-500 w-24">Apply</div>
+                  <input readOnly value={getPublicLinks(shareJob.id).apply} className="flex-1 px-3 py-2 rounded-lg border bg-zinc-50" />
+                  <button onClick={() => copyToClipboard(getPublicLinks(shareJob.id!).apply)} className="px-3 py-2 rounded-lg border text-sm hover:bg-zinc-50">Copy</button>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-emerald-600 h-5">{copyMsg || ''}</div>
+                <div className="flex gap-2">
+                  <button onClick={() => { window.open(getPublicLinks(shareJob.id!).details, '_blank'); }} className="px-3 py-2 rounded-lg border text-sm hover:bg-zinc-50">Open details</button>
+                  <button onClick={() => { window.open(getPublicLinks(shareJob.id!).apply, '_blank'); }} className="px-3 py-2 rounded-lg border text-sm hover:bg-zinc-50">Open apply</button>
+                  <button onClick={() => setShareJob(null)} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700">Done</button>
+                </div>
+              </div>
+            </div>
+          </Modal>
+        )}
+      </PageShell>
     </SimpleConnectionGuard>
   );
 }

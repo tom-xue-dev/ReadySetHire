@@ -5,6 +5,8 @@ import Chip from '../components/ui/Chip';
 import Card from '../components/ui/Card';
 import ScoreBadge from '../components/ui/ScoreBadge';
 import { useFilteredCandidates, useSortedCandidates, type Candidate } from '../hooks/useCandidates';
+import { SimpleConnectionGuard } from '../components/SimpleConnectionStatus';
+import PageShell from '../components/PageShell';
 // @ts-ignore JS helper
 import { getAllApplications, downloadResume} from '../api/helper.js';
 
@@ -201,25 +203,29 @@ export default function ResumeManagement() {
   }, [apps]);
 
   return (
-    <section className="min-h-[60vh]">
-      {/* Page header (inside app Header/Sidebar layout) */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center gap-2 text-gray-800">
+    <SimpleConnectionGuard>
+    <PageShell
+      title={(
+        <div className="flex items-center gap-2">
           <UserGroupIcon className="w-5 h-5"/>
-          <h1 className="text-xl font-semibold m-0">Resume Management</h1>
+          <span>Resume Management</span>
         </div>
-        <div className="flex-1" />
-        <div className="relative w-full max-w-md">
-          <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search name, skill, email…"
-            className="w-full pl-9 pr-3 py-2 rounded-lg border bg-white focus:outline-none focus:ring"
-          />
+      )}
+      right={(
+        <div className="flex items-center gap-2">
+          <div className="relative w-full max-w-md">
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search name, skill, email…"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border bg-white focus:outline-none focus:ring"
+            />
+          </div>
+          <Button variant="outline" onClick={() => setUploadOpen(true)} className="ml-2"><DocumentArrowUpIcon className="w-4 h-4 mr-1"/> Add Resume</Button>
         </div>
-        <Button variant="outline" onClick={() => setUploadOpen(true)} className="ml-2"><DocumentArrowUpIcon className="w-4 h-4 mr-1"/> Add Resume</Button>
-      </div>
+      )}
+    >
 
       <div className="grid grid-cols-12 gap-4">
         {/* Filters */}
@@ -361,6 +367,7 @@ export default function ResumeManagement() {
 
       <UploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} />
       <DetailDrawer open={!!detail} onClose={() => setDetail(null)} cand={detail} />
-    </section>
+    </PageShell>
+    </SimpleConnectionGuard>
   );
 }

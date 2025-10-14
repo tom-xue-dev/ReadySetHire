@@ -224,6 +224,11 @@ export async function updateJob(id, jobData) {
     return apiRequest(`/jobs/${id}`, 'PATCH', jobData);
 }
 
+// Publish job by id
+export async function publishJob(id) {
+    return apiRequest(`/jobs/${id}/publish`, 'PATCH', {});
+}
+
 /**
  * Function to delete a job.
  * PostgREST style query format to match interview API.
