@@ -52,10 +52,21 @@ services:
       retries: 8
       start_period: 120s
 
-  # pgAdmin (optional - for database management)
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["ollama serve & sleep 5 && ollama pull deepseek-r1:7b && tail -f /dev/null"]
+
 
 volumes:
   postgres_data:
+    driver: local
+  ollama-data:
     driver: local
 
 networks:

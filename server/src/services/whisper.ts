@@ -4,8 +4,9 @@ export class WhisperService {
     private transcriber: any;
 
   constructor() {
-
-    this.loadModel();
+    if (process.env.NODE_ENV !== 'test') {
+      this.loadModel();
+    }
   }
 
   private async loadModel() {
