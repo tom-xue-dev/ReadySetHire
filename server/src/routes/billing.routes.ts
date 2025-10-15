@@ -14,7 +14,7 @@ if (!STRIPE_SECRET_KEY) {
   console.warn('Stripe is not configured. Set STRIPE_SECRET_KEY to enable billing.');
 }
 
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' }) : (null as unknown as Stripe);
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : (null as unknown as Stripe);
 
 // Create a Checkout Session for subscription
 router.post('/create-checkout-session', authenticateToken, async (req, res) => {

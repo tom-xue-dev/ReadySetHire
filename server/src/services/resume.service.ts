@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import prisma from './database';
 
-const prisma = new PrismaClient();
 
 export interface ResumeUpload {
   originalName: string;

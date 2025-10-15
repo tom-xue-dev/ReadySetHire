@@ -9,15 +9,12 @@ const router = Router();
  */
 
 // Submit job application (with resume upload)
-router.post(
-  '/jobs/:jobId/apply',
-  upload.single('resume'),
+router.post('/jobs/:jobId/apply',upload.single('resume'),
   jobApplicationController.submitApplication.bind(jobApplicationController)
 );
 
-// Track application status by token
-router.get(
-  '/applications/track/:token',
+// get application status by token
+router.get('/applications/track/:token',
   jobApplicationController.trackApplication.bind(jobApplicationController)
 );
 
@@ -26,30 +23,22 @@ router.get(
  */
 
 // Get all applications (with pagination and filters)
-router.get(
-  '/applications',
-  authenticateToken,
+router.get('/applications',authenticateToken,
   jobApplicationController.getAllApplications.bind(jobApplicationController)
 );
 
 // Get applications for specific job
-router.get(
-  '/jobs/:jobId/applications',
-  authenticateToken,
+router.get('/jobs/:jobId/applications',authenticateToken,
   jobApplicationController.getJobApplications.bind(jobApplicationController)
 );
 
 // Get application statistics for a job
-router.get(
-  '/jobs/:jobId/applications/stats',
-  authenticateToken,
+router.get('/jobs/:jobId/applications/stats',authenticateToken,
   jobApplicationController.getApplicationStats.bind(jobApplicationController)
 );
 
 // Get single application details
-router.get(
-  '/applications/:id',
-  authenticateToken,
+router.get('/applications/:id',authenticateToken,
   jobApplicationController.getApplicationById.bind(jobApplicationController)
 );
 
