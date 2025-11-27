@@ -60,7 +60,7 @@ services:
     volumes:
       - ollama-data:/root/.ollama
     entrypoint: ["/bin/bash", "-c"]
-    command: ["ollama serve & sleep 5 && ollama pull deepseek-r1:7b && tail -f /dev/null"]
+    command: ["ollama serve & sleep 5 && ollama pull llama3.2 && tail -f /dev/null"]
 
 
 volumes:
